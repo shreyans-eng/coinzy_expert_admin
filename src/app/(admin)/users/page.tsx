@@ -32,14 +32,20 @@ const DEFAULT_FILTERS: UserFilters = {
   search: "",
 };
 
+const DEFAULT_SORT_KEY: UserSortKey = "most_requests";
+
 export default function UsersPage() {
   const adminKey = useAdminKey();
   const handleApiError = useApiHandler();
   const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<UserFilters>(DEFAULT_FILTERS);
-  const [sortKey, setSortKey] = useState<UserSortKey>("most_requests");
+  const [draftFilters, setDraftFilters] = useState<UserFilters>(DEFAULT_FILTERS);
+  const [draftSortKey, setDraftSortKey] = useState<UserSortKey>(DEFAULT_SORT_KEY);
+  const [appliedFilters, setAppliedFilters] =
+    useState<UserFilters>(DEFAULT_FILTERS);
+  const [appliedSortKey, setAppliedSortKey] =
+    useState<UserSortKey>(DEFAULT_SORT_KEY);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -61,12 +67,12 @@ export default function UsersPage() {
   }, [adminKey, handleApiError, showToast]);
 
   const filtered = useMemo(
-    () => filterUsers(users, filters),
-    [users, filters],
+    () => filterUsers(users, appliedFilters),
+    [users, appliedFilters],
   );
   const sorted = useMemo(
-    () => sortUsers(filtered, sortKey),
-    [filtered, sortKey],
+    () => sortUsers(filtered, appliedSortKey),
+    [filtered, appliedSortKey],
   );
   const paginated = useMemo(
     () => paginateSlice(sorted, page, DEFAULT_PAGE_SIZE),
@@ -74,9 +80,26 @@ export default function UsersPage() {
   );
   const summary = useMemo(() => summarizeUserFleet(users), [users]);
 
+  const hasActiveFilters =
+    appliedFilters.search !== "" || appliedSortKey !== DEFAULT_SORT_KEY;
+
+  const handleApply = () => {
+    setAppliedFilters(draftFilters);
+    setAppliedSortKey(draftSortKey);
+    setPage(1);
+  };
+
+  const handleRefresh = () => {
+    setDraftFilters(DEFAULT_FILTERS);
+    setDraftSortKey(DEFAULT_SORT_KEY);
+    setAppliedFilters(DEFAULT_FILTERS);
+    setAppliedSortKey(DEFAULT_SORT_KEY);
+    setPage(1);
+  };
+
   useEffect(() => {
     setPage(1);
-  }, [filters, sortKey]);
+  }, [appliedFilters, appliedSortKey]);
 
   return (
     <>
@@ -100,10 +123,13 @@ export default function UsersPage() {
         ) : (
           <>
             <UserFilterBar
-              filters={filters}
-              onChange={setFilters}
-              sortKey={sortKey}
-              onSortChange={setSortKey}
+              draftFilters={draftFilters}
+              draftSortKey={draftSortKey}
+              onDraftFiltersChange={setDraftFilters}
+              onDraftSortChange={setDraftSortKey}
+              onApply={handleApply}
+              onRefresh={handleRefresh}
+              hasActiveFilters={hasActiveFilters}
               resultCount={filtered.length}
               totalCount={users.length}
             />
@@ -113,12 +139,11 @@ export default function UsersPage() {
                 title="No users match filters"
                 description="Try clearing the search filter."
                 action={
-                  <Button
-                    variant="secondary"
-                    onClick={() => setFilters(DEFAULT_FILTERS)}
-                  >
-                    Reset filters
-                  </Button>
+                  hasActiveFilters ? (
+                    <Button variant="secondary" onClick={handleRefresh}>
+                      Refresh
+                    </Button>
+                  ) : null
                 }
               />
             ) : (
