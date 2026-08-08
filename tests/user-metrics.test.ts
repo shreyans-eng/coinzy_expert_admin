@@ -76,53 +76,10 @@ describe("user-metrics", () => {
     expect(sorted[0].name).toBe("Bob");
   });
 
-  it("filterUsers matches last login and activity filters", () => {
-    const users: User[] = [
-      {
-        ...sampleUsers[0],
-        lastLoginAt: "2026-08-07T00:00:00.000Z",
-      },
-      {
-        ...sampleUsers[1],
-        lastLoginAt: null,
-        stats: {
-          ...sampleUsers[1].stats!,
-          totalRequests: 0,
-          activeRequests: 0,
-        },
-      },
-    ];
-
-    expect(
-      filterUsers(users, {
-        search: "",
-        lastLogin: "last_7_days",
-        activity: "all",
-      }),
-    ).toHaveLength(1);
-
-    expect(
-      filterUsers(users, {
-        search: "",
-        lastLogin: "never",
-        activity: "all",
-      }),
-    ).toEqual([users[1]]);
-
-    expect(
-      filterUsers(users, {
-        search: "",
-        lastLogin: "all",
-        activity: "has_active",
-      }),
-    ).toEqual([users[0]]);
-
-    expect(
-      filterUsers(users, {
-        search: "bob",
-        lastLogin: "all",
-        activity: "all",
-      }),
-    ).toEqual([users[1]]);
+  it("filterUsers matches search query", () => {
+    expect(filterUsers(sampleUsers, { search: "bob" })).toEqual([
+      sampleUsers[1],
+    ]);
+    expect(filterUsers(sampleUsers, { search: "" })).toEqual(sampleUsers);
   });
 });

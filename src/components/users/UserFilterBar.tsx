@@ -2,12 +2,7 @@
 
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import type {
-  UserActivityFilter,
-  UserFilters,
-  UserLastLoginFilter,
-  UserSortKey,
-} from "@/lib/user-metrics";
+import type { UserFilters, UserSortKey } from "@/lib/user-metrics";
 
 type UserFilterBarProps = {
   filters: UserFilters;
@@ -44,43 +39,6 @@ export function UserFilterBar({
           placeholder="Name or email…"
           value={filters.search}
           onChange={(e) => onChange({ ...filters, search: e.target.value })}
-        />
-      </div>
-      <div className="w-full sm:w-44">
-        <Select
-          label="Last login"
-          value={filters.lastLogin}
-          onChange={(e) =>
-            onChange({
-              ...filters,
-              lastLogin: e.target.value as UserLastLoginFilter,
-            })
-          }
-          options={[
-            { value: "all", label: "All users" },
-            { value: "last_7_days", label: "Logged in (7 days)" },
-            { value: "last_30_days", label: "Logged in (30 days)" },
-            { value: "older_30_days", label: "Inactive 30+ days" },
-            { value: "never", label: "Never logged in" },
-          ]}
-        />
-      </div>
-      <div className="w-full sm:w-44">
-        <Select
-          label="Activity"
-          value={filters.activity}
-          onChange={(e) =>
-            onChange({
-              ...filters,
-              activity: e.target.value as UserActivityFilter,
-            })
-          }
-          options={[
-            { value: "all", label: "All activity" },
-            { value: "has_active", label: "Has active requests" },
-            { value: "has_requests", label: "Has any requests" },
-            { value: "no_requests", label: "No requests yet" },
-          ]}
         />
       </div>
       <div className="w-full sm:w-44">

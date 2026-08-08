@@ -30,8 +30,6 @@ import { useEffect, useMemo, useState } from "react";
 
 const DEFAULT_FILTERS: UserFilters = {
   search: "",
-  lastLogin: "all",
-  activity: "all",
 };
 
 export default function UsersPage() {
@@ -113,7 +111,7 @@ export default function UsersPage() {
             {filtered.length === 0 ? (
               <EmptyState
                 title="No users match filters"
-                description="Try clearing search or adjusting last login and activity filters."
+                description="Try clearing the search filter."
                 action={
                   <Button
                     variant="secondary"
