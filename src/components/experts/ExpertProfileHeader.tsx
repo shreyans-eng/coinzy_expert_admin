@@ -1,5 +1,5 @@
 import { Badge, statusBadgeVariant } from "@/components/ui/Badge";
-import { expertInitials } from "@/lib/expert-metrics";
+import { expertInitials, formatLastLogin } from "@/lib/expert-metrics";
 import type { Expert } from "@/types/admin-api";
 
 export function ExpertProfileHeader({ expert }: { expert: Expert }) {
@@ -33,6 +33,9 @@ export function ExpertProfileHeader({ expert }: { expert: Expert }) {
           <p className="mt-2 text-sm text-text">{expert.oneLineDescription}</p>
         ) : null}
         <p className="mt-2 font-mono text-xs text-text-muted">ID: {expert._id}</p>
+        <p className="mt-1 text-xs text-text-muted">
+          Last login: {formatLastLogin(expert.lastLoginAt)}
+        </p>
       </div>
     </div>
   );

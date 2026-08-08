@@ -17,8 +17,11 @@ import { useToast } from "@/components/ui/Toast";
 import {
   completionRate,
   filterExperts,
+  formatLastLogin,
+  sortExperts,
   summarizeExpertFleet,
   type ExpertFilters,
+  type ExpertSortKey,
 } from "@/lib/expert-metrics";
 import { listExperts } from "@/lib/admin-api";
 import { DEFAULT_PAGE_SIZE, paginateSlice } from "@/lib/pagination";
@@ -46,6 +49,7 @@ export default function ExpertsPage() {
   const [experts, setExperts] = useState<Expert[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<ExpertFilters>(DEFAULT_FILTERS);
+  const [sortKey, setSortKey] = useState<ExpertSortKey>("name");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -70,15 +74,19 @@ export default function ExpertsPage() {
     () => filterExperts(experts, filters),
     [experts, filters],
   );
+  const sorted = useMemo(
+    () => sortExperts(filtered, sortKey),
+    [filtered, sortKey],
+  );
   const paginated = useMemo(
-    () => paginateSlice(filtered, page, DEFAULT_PAGE_SIZE),
-    [filtered, page],
+    () => paginateSlice(sorted, page, DEFAULT_PAGE_SIZE),
+    [sorted, page],
   );
   const summary = useMemo(() => summarizeExpertFleet(experts), [experts]);
 
   useEffect(() => {
     setPage(1);
-  }, [filters]);
+  }, [filters, sortKey]);
 
   return (
     <>
@@ -114,6 +122,8 @@ export default function ExpertsPage() {
             <ExpertFilterBar
               filters={filters}
               onChange={setFilters}
+              sortKey={sortKey}
+              onSortChange={setSortKey}
               resultCount={filtered.length}
               totalCount={experts.length}
             />
@@ -144,6 +154,9 @@ export default function ExpertsPage() {
                       </th>
                       <th className="hidden px-4 py-3 font-semibold xl:table-cell sm:px-6">
                         Completed
+                      </th>
+                      <th className="hidden px-4 py-3 font-semibold lg:table-cell sm:px-6">
+                        Last login
                       </th>
                       <th className="px-4 py-3 font-semibold sm:px-6" />
                     </tr>
@@ -205,6 +218,9 @@ export default function ExpertsPage() {
                           </td>
                           <td className="hidden px-4 py-3 xl:table-cell sm:px-6">
                             {expert.stats.completedCount}
+                          </td>
+                          <td className="hidden px-4 py-3 text-text-muted lg:table-cell sm:px-6">
+                            {formatLastLogin(expert.lastLoginAt)}
                           </td>
                           <td className="px-4 py-3 text-right sm:px-6">
                             <Link href={`/experts/${expert._id}`}>

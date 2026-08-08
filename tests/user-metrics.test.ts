@@ -56,4 +56,19 @@ describe("user-metrics", () => {
     expect(sorted[0].name).toBe("Alice");
     expect(userStats(sorted[1]).totalRequests).toBe(3);
   });
+
+  it("sortUsers orders by last login descending", () => {
+    const users: User[] = [
+      {
+        ...sampleUsers[0],
+        lastLoginAt: "2026-01-01T00:00:00.000Z",
+      },
+      {
+        ...sampleUsers[1],
+        lastLoginAt: "2026-08-01T00:00:00.000Z",
+      },
+    ];
+    const sorted = sortUsers(users, "last_login_desc");
+    expect(sorted[0].name).toBe("Bob");
+  });
 });

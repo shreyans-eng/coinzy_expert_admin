@@ -114,3 +114,49 @@ export function expertInitials(name: string): string {
     .slice(0, 2)
     .toUpperCase();
 }
+
+export type ExpertSortKey =
+  | "name"
+  | "most_active_requests"
+  | "last_login_desc"
+  | "last_login_asc";
+
+function compareLastLogin(
+  a: string | null | undefined,
+  b: string | null | undefined,
+  direction: "asc" | "desc",
+): number {
+  const timeA = a ? new Date(a).getTime() : null;
+  const timeB = b ? new Date(b).getTime() : null;
+
+  if (timeA === null && timeB === null) return 0;
+  if (timeA === null) return 1;
+  if (timeB === null) return -1;
+
+  return direction === "desc" ? timeB - timeA : timeA - timeB;
+}
+
+export function sortExperts(experts: Expert[], sortKey: ExpertSortKey): Expert[] {
+  const sorted = [...experts];
+
+  sorted.sort((a, b) => {
+    switch (sortKey) {
+      case "most_active_requests":
+        return b.activeCommittedRequestCount - a.activeCommittedRequestCount;
+      case "last_login_desc":
+        return compareLastLogin(a.lastLoginAt, b.lastLoginAt, "desc");
+      case "last_login_asc":
+        return compareLastLogin(a.lastLoginAt, b.lastLoginAt, "asc");
+      case "name":
+      default:
+        return a.name.localeCompare(b.name);
+    }
+  });
+
+  return sorted;
+}
+
+export function formatLastLogin(value: string | null | undefined): string {
+  if (!value) return "Never";
+  return new Date(value).toLocaleString();
+}

@@ -4,6 +4,8 @@ export type UserSortKey =
   | "most_requests"
   | "most_active"
   | "most_credits"
+  | "last_login_desc"
+  | "last_login_asc"
   | "newest"
   | "name";
 
@@ -27,6 +29,21 @@ const EMPTY_STATS: UserRequestStats = {
   creditsSpentOnRequests: 0,
   lastRequestAt: null,
 };
+
+function compareLastLogin(
+  a: string | null | undefined,
+  b: string | null | undefined,
+  direction: "asc" | "desc",
+): number {
+  const timeA = a ? new Date(a).getTime() : null;
+  const timeB = b ? new Date(b).getTime() : null;
+
+  if (timeA === null && timeB === null) return 0;
+  if (timeA === null) return 1;
+  if (timeB === null) return -1;
+
+  return direction === "desc" ? timeB - timeA : timeA - timeB;
+}
 
 export function userStats(user: User): UserRequestStats {
   return user.stats ?? EMPTY_STATS;
@@ -88,6 +105,10 @@ export function sortUsers(users: User[], sortKey: UserSortKey): User[] {
         return statsB.activeRequests - statsA.activeRequests;
       case "most_credits":
         return b.creditBalance - a.creditBalance;
+      case "last_login_desc":
+        return compareLastLogin(a.lastLoginAt, b.lastLoginAt, "desc");
+      case "last_login_asc":
+        return compareLastLogin(a.lastLoginAt, b.lastLoginAt, "asc");
       case "name":
         return a.name.localeCompare(b.name);
       case "newest":
@@ -105,4 +126,9 @@ export function completionRateForUser(stats: UserRequestStats): number {
   const total = stats.completedRequests + stats.deadlineMissedRequests;
   if (total === 0) return 0;
   return Math.round((stats.completedRequests / total) * 100);
+}
+
+export function formatLastLogin(value: string | null | undefined): string {
+  if (!value) return "Never";
+  return new Date(value).toLocaleString();
 }

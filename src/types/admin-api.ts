@@ -20,6 +20,7 @@ export type Expert = {
   stats: ExpertStats;
   lastOfferedAt: string | null;
   lastAssignedAt: string | null;
+  lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -41,6 +42,7 @@ export type User = {
   name: string;
   email: string;
   creditBalance: number;
+  lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
   stats?: UserRequestStats;

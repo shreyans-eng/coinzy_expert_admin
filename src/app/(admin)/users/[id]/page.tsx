@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { getUser } from "@/lib/admin-api";
-import { userStats } from "@/lib/user-metrics";
+import { formatLastLogin, userStats } from "@/lib/user-metrics";
 import { useApiHandler } from "@/lib/useApiHandler";
 import type { User, UserRequestStats } from "@/types/admin-api";
 import Link from "next/link";
@@ -138,6 +138,10 @@ export default function UserDetailPage() {
             <div className="flex justify-between gap-4">
               <dt className="text-text-muted">Last updated</dt>
               <dd>{new Date(user.updatedAt).toLocaleString()}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-text-muted">Last login</dt>
+              <dd>{formatLastLogin(user.lastLoginAt)}</dd>
             </div>
           </dl>
 

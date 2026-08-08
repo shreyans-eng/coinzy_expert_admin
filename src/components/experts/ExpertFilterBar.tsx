@@ -2,18 +2,29 @@
 
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import type { ExpertFilters } from "@/lib/expert-metrics";
+import type { ExpertFilters, ExpertSortKey } from "@/lib/expert-metrics";
 
 type ExpertFilterBarProps = {
   filters: ExpertFilters;
   onChange: (next: ExpertFilters) => void;
+  sortKey: ExpertSortKey;
+  onSortChange: (sortKey: ExpertSortKey) => void;
   resultCount: number;
   totalCount: number;
 };
 
+const SORT_OPTIONS = [
+  { value: "name", label: "Name A–Z" },
+  { value: "most_active_requests", label: "Most workload" },
+  { value: "last_login_desc", label: "Last login (newest)" },
+  { value: "last_login_asc", label: "Last login (oldest)" },
+];
+
 export function ExpertFilterBar({
   filters,
   onChange,
+  sortKey,
+  onSortChange,
   resultCount,
   totalCount,
 }: ExpertFilterBarProps) {
@@ -77,6 +88,14 @@ export function ExpertFilterBar({
             { value: "external", label: "External" },
             { value: "internal", label: "Internal" },
           ]}
+        />
+      </div>
+      <div className="w-full sm:w-44">
+        <Select
+          label="Sort by"
+          value={sortKey}
+          onChange={(e) => onSortChange(e.target.value as ExpertSortKey)}
+          options={SORT_OPTIONS}
         />
       </div>
       <p className="pb-2 text-xs text-text-muted sm:ml-auto">

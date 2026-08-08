@@ -19,6 +19,7 @@ import { DEFAULT_PAGE_SIZE, paginateSlice } from "@/lib/pagination";
 import {
   sortUsers,
   summarizeUserFleet,
+  formatLastLogin,
   userStats,
   type UserSortKey,
 } from "@/lib/user-metrics";
@@ -31,7 +32,9 @@ const SORT_OPTIONS = [
   { value: "most_requests", label: "Most requests" },
   { value: "most_active", label: "Most active" },
   { value: "most_credits", label: "Highest credits" },
-  { value: "newest", label: "Newest first" },
+  { value: "last_login_desc", label: "Last login (newest)" },
+  { value: "last_login_asc", label: "Last login (oldest)" },
+  { value: "newest", label: "Newest joined" },
   { value: "name", label: "Name A–Z" },
 ];
 
@@ -167,6 +170,9 @@ export default function UsersPage() {
                       Completed
                     </th>
                     <th className="px-4 py-3 font-semibold sm:px-6">Credits</th>
+                    <th className="hidden px-4 py-3 font-semibold lg:table-cell sm:px-6">
+                      Last login
+                    </th>
                     <th className="hidden px-4 py-3 font-semibold xl:table-cell sm:px-6">
                       Last request
                     </th>
@@ -207,6 +213,9 @@ export default function UsersPage() {
                           <span className="inline-flex items-center rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
                             {user.creditBalance}
                           </span>
+                        </td>
+                        <td className="hidden px-4 py-3 text-text-muted lg:table-cell sm:px-6">
+                          {formatLastLogin(user.lastLoginAt)}
                         </td>
                         <td className="hidden px-4 py-3 text-text-muted xl:table-cell sm:px-6">
                           {stats.lastRequestAt
