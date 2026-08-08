@@ -3,6 +3,7 @@
 import { useAdminKey } from "@/components/layout/AdminAuthGuard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { FormActionField } from "@/components/ui/FormActionField";
 import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
@@ -85,18 +86,21 @@ export function ExpertAllocationLookup({ expertId, expertName }: Props) {
         <strong>{expertName}</strong>. Requires the request MongoDB{" "}
         <code className="rounded bg-input-bg px-1 font-mono text-xs">_id</code>.
       </p>
-      <form onSubmit={handleLookup} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex-1">
-          <Input
-            label="Request ID"
-            value={requestId}
-            onChange={(e) => setRequestId(e.target.value)}
-            placeholder="507f1f77bcf86cd799439077"
-          />
-        </div>
-        <Button type="submit" loading={loading}>
-          Load allocation
-        </Button>
+      <form
+        onSubmit={handleLookup}
+        className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto]"
+      >
+        <Input
+          label="Request ID"
+          value={requestId}
+          onChange={(e) => setRequestId(e.target.value)}
+          placeholder="507f1f77bcf86cd799439077"
+        />
+        <FormActionField>
+          <Button type="submit" loading={loading} className="h-10 w-full sm:w-auto">
+            Load allocation
+          </Button>
+        </FormActionField>
       </form>
 
       {loading ? <LoadingState label="Loading…" /> : null}

@@ -12,6 +12,7 @@ import {
   LoadingState,
   PageHeader,
 } from "@/components/ui/Card";
+import { Pagination } from "@/components/ui/Pagination";
 import { useToast } from "@/components/ui/Toast";
 import {
   completionRate,
@@ -20,6 +21,7 @@ import {
   type ExpertFilters,
 } from "@/lib/expert-metrics";
 import { listExperts } from "@/lib/admin-api";
+import { DEFAULT_PAGE_SIZE, paginateSlice } from "@/lib/pagination";
 import { useApiHandler } from "@/lib/useApiHandler";
 import type { Expert } from "@/types/admin-api";
 import Link from "next/link";
@@ -44,6 +46,7 @@ export default function ExpertsPage() {
   const [experts, setExperts] = useState<Expert[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<ExpertFilters>(DEFAULT_FILTERS);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +70,15 @@ export default function ExpertsPage() {
     () => filterExperts(experts, filters),
     [experts, filters],
   );
+  const paginated = useMemo(
+    () => paginateSlice(filtered, page, DEFAULT_PAGE_SIZE),
+    [filtered, page],
+  );
   const summary = useMemo(() => summarizeExpertFleet(experts), [experts]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
 
   return (
     <>
@@ -138,7 +149,7 @@ export default function ExpertsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {filtered.map((expert) => {
+                    {paginated.items.map((expert) => {
                       const rate = completionRate(expert);
                       return (
                         <tr key={expert._id} className="hover:bg-input-bg/50">
@@ -209,6 +220,15 @@ export default function ExpertsPage() {
                 </table>
               </div>
             )}
+            {!loading && filtered.length > 0 ? (
+              <Pagination
+                page={paginated.pagination.page}
+                totalPages={paginated.pagination.totalPages}
+                total={paginated.pagination.total}
+                limit={paginated.pagination.limit}
+                onPageChange={setPage}
+              />
+            ) : null}
           </>
         )}
       </Card>

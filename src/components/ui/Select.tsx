@@ -3,12 +3,16 @@ import type { SelectHTMLAttributes } from "react";
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
   label?: string;
   error?: string;
+  hint?: string;
+  reserveHintSpace?: boolean;
   options: { value: string; label: string }[];
 };
 
 export function Select({
   label,
   error,
+  hint,
+  reserveHintSpace = false,
   options,
   id,
   className = "",
@@ -25,7 +29,7 @@ export function Select({
       ) : null}
       <select
         id={selectId}
-        className={`w-full rounded-lg border bg-input-bg px-3 py-2 text-sm text-text outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 ${
+        className={`h-10 w-full rounded-lg border bg-input-bg px-3 py-2 text-sm text-text outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 ${
           error ? "border-danger" : "border-input-border"
         } ${className}`}
         {...props}
@@ -36,7 +40,15 @@ export function Select({
           </option>
         ))}
       </select>
-      {error ? <p className="text-xs text-danger">{error}</p> : null}
+      {error || hint || reserveHintSpace ? (
+        <p
+          className={`min-h-[1.125rem] text-xs ${
+            error ? "text-danger" : hint ? "text-text-muted" : "invisible"
+          }`}
+        >
+          {error ?? hint ?? "\u00A0"}
+        </p>
+      ) : null}
     </div>
   );
 }

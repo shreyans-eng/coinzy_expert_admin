@@ -24,6 +24,17 @@ export type Expert = {
   updatedAt: string;
 };
 
+export type UserRequestStats = {
+  totalRequests: number;
+  activeRequests: number;
+  completedRequests: number;
+  deadlineMissedRequests: number;
+  refundedRequests: number;
+  adminCreatedRequests: number;
+  creditsSpentOnRequests: number;
+  lastRequestAt: string | null;
+};
+
 export type User = {
   _id: string;
   externalUserId: string;
@@ -32,6 +43,7 @@ export type User = {
   creditBalance: number;
   createdAt: string;
   updatedAt: string;
+  stats?: UserRequestStats;
 };
 
 export type CreditLedger = {
@@ -106,12 +118,64 @@ export type AllocationStage =
 export type AllocationSummaryByStage = {
   requestId: string;
   stages: Record<AllocationStage, AllocationAttempt[]>;
+  request?: AllocationRequestContext;
+  user?: AllocationUserContext;
 };
 
 export type AllocationSummaryForStage = {
   requestId: string;
   stage: AllocationStage;
   attempts: AllocationAttempt[];
+  request?: AllocationRequestContext;
+  user?: AllocationUserContext;
+};
+
+export type AllocationRequestContext = {
+  _id: string;
+  displayId: string | null;
+  status: string;
+  country: string;
+  userId: string;
+  assignedExpertId: string | null;
+  allocationRound: number;
+  isAdminCreated: boolean;
+  createdAt: string;
+};
+
+export type AllocationUserContext = {
+  _id: string;
+  externalUserId: string;
+  name: string;
+  email: string;
+  creditBalance: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type AllocationSummaryListItem = {
+  attemptId: string;
+  requestId: string;
+  displayId: string;
+  stage: AllocationStage;
+  round: number;
+  attemptedAt: string;
+  expertCount: number;
+  offeredExpertId: string | null;
+  requestStatus?: string;
+  requestCountry?: string;
+  user?: AllocationUserContext | null;
+};
+
+export type PaginationMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type AllocationSummaryListResponse = {
+  items: AllocationSummaryListItem[];
+  pagination: PaginationMeta;
 };
 
 export type ApiEnvelope<T> = {

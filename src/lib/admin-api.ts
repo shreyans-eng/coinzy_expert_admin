@@ -3,6 +3,7 @@ import type {
   AllocationStage,
   AllocationSummaryByStage,
   AllocationSummaryForStage,
+  AllocationSummaryListResponse,
   CreateExpertBody,
   CreateUserRequestBody,
   CreditAdjustBody,
@@ -10,6 +11,7 @@ import type {
   ExpertStatus,
   UpdateExpertBody,
   User,
+  UserRequestStats,
 } from "@/types/admin-api";
 
 function withKey(adminKey: string) {
@@ -85,6 +87,14 @@ export async function listUsers(adminKey: string, email?: string) {
   return res.data.users;
 }
 
+export async function getUser(adminKey: string, userId: string) {
+  const res = await adminFetch<{ user: User; stats: UserRequestStats }>(
+    `/admin/users/${userId}`,
+    { method: "GET", ...withKey(adminKey) },
+  );
+  return res.data;
+}
+
 export async function adjustUserCredits(
   adminKey: string,
   userId: string,
@@ -113,6 +123,33 @@ export async function createUserRequest(
       body: JSON.stringify(body),
       ...withKey(adminKey),
     },
+  );
+  return res.data;
+}
+
+export async function listAllocationSummaries(
+  adminKey: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    stage?: AllocationStage;
+    requestId?: string;
+    expertId?: string;
+    displayId?: string;
+  },
+) {
+  const search = new URLSearchParams();
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.stage) search.set("stage", params.stage);
+  if (params?.requestId?.trim()) search.set("requestId", params.requestId.trim());
+  if (params?.expertId?.trim()) search.set("expertId", params.expertId.trim());
+  if (params?.displayId?.trim()) search.set("displayId", params.displayId.trim());
+
+  const query = search.toString() ? `?${search.toString()}` : "";
+  const res = await adminFetch<AllocationSummaryListResponse>(
+    `/admin/allocation-summaries${query}`,
+    { method: "GET", ...withKey(adminKey) },
   );
   return res.data;
 }

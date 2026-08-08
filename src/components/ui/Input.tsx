@@ -4,12 +4,15 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
   error?: string;
   hint?: string;
+  /** Reserve hint row height so fields align in multi-column forms */
+  reserveHintSpace?: boolean;
 };
 
 export function Input({
   label,
   error,
   hint,
+  reserveHintSpace = false,
   id,
   className = "",
   ...props
@@ -28,15 +31,19 @@ export function Input({
       ) : null}
       <input
         id={inputId}
-        className={`w-full rounded-lg border bg-input-bg px-3 py-2 text-sm text-text outline-none transition-colors placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 ${
+        className={`h-10 w-full rounded-lg border bg-input-bg px-3 py-2 text-sm text-text outline-none transition-colors placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 ${
           error ? "border-danger" : "border-input-border"
         } ${className}`}
         {...props}
       />
-      {error ? (
-        <p className="text-xs text-danger">{error}</p>
-      ) : hint ? (
-        <p className="text-xs text-text-muted">{hint}</p>
+      {error || hint || reserveHintSpace ? (
+        <p
+          className={`min-h-[1.125rem] text-xs ${
+            error ? "text-danger" : hint ? "text-text-muted" : "invisible"
+          }`}
+        >
+          {error ?? hint ?? "\u00A0"}
+        </p>
       ) : null}
     </div>
   );
