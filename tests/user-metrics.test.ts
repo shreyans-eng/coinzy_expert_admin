@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { sortUsers, summarizeUserFleet, userStats } from "@/lib/user-metrics";
+import {
+  filterUsers,
+  sortUsers,
+  summarizeUserFleet,
+  userStats,
+} from "@/lib/user-metrics";
 import type { User } from "@/types/admin-api";
 
 const sampleUsers: User[] = [
@@ -9,6 +14,7 @@ const sampleUsers: User[] = [
     name: "Alice",
     email: "alice@example.com",
     creditBalance: 5,
+    lastLoginAt: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     stats: {
@@ -28,6 +34,7 @@ const sampleUsers: User[] = [
     name: "Bob",
     email: "bob@example.com",
     creditBalance: 2,
+    lastLoginAt: "2026-08-01T00:00:00.000Z",
     createdAt: "2026-02-01T00:00:00.000Z",
     updatedAt: "2026-02-01T00:00:00.000Z",
     stats: {
@@ -63,12 +70,59 @@ describe("user-metrics", () => {
         ...sampleUsers[0],
         lastLoginAt: "2026-01-01T00:00:00.000Z",
       },
-      {
-        ...sampleUsers[1],
-        lastLoginAt: "2026-08-01T00:00:00.000Z",
-      },
+      sampleUsers[1],
     ];
     const sorted = sortUsers(users, "last_login_desc");
     expect(sorted[0].name).toBe("Bob");
+  });
+
+  it("filterUsers matches last login and activity filters", () => {
+    const users: User[] = [
+      {
+        ...sampleUsers[0],
+        lastLoginAt: "2026-08-07T00:00:00.000Z",
+      },
+      {
+        ...sampleUsers[1],
+        lastLoginAt: null,
+        stats: {
+          ...sampleUsers[1].stats!,
+          totalRequests: 0,
+          activeRequests: 0,
+        },
+      },
+    ];
+
+    expect(
+      filterUsers(users, {
+        search: "",
+        lastLogin: "last_7_days",
+        activity: "all",
+      }),
+    ).toHaveLength(1);
+
+    expect(
+      filterUsers(users, {
+        search: "",
+        lastLogin: "never",
+        activity: "all",
+      }),
+    ).toEqual([users[1]]);
+
+    expect(
+      filterUsers(users, {
+        search: "",
+        lastLogin: "all",
+        activity: "has_active",
+      }),
+    ).toEqual([users[0]]);
+
+    expect(
+      filterUsers(users, {
+        search: "bob",
+        lastLogin: "all",
+        activity: "all",
+      }),
+    ).toEqual([users[1]]);
   });
 });

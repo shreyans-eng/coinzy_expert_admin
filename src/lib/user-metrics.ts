@@ -9,6 +9,25 @@ export type UserSortKey =
   | "newest"
   | "name";
 
+export type UserLastLoginFilter =
+  | "all"
+  | "never"
+  | "last_7_days"
+  | "last_30_days"
+  | "older_30_days";
+
+export type UserActivityFilter =
+  | "all"
+  | "has_requests"
+  | "has_active"
+  | "no_requests";
+
+export type UserFilters = {
+  search: string;
+  lastLogin: UserLastLoginFilter;
+  activity: UserActivityFilter;
+};
+
 export type UserFleetSummary = {
   totalUsers: number;
   totalRequests: number;
@@ -47,6 +66,69 @@ function compareLastLogin(
 
 export function userStats(user: User): UserRequestStats {
   return user.stats ?? EMPTY_STATS;
+}
+
+function daysSince(value: string): number {
+  const ms = Date.now() - new Date(value).getTime();
+  return ms / (1000 * 60 * 60 * 24);
+}
+
+function matchesLastLoginFilter(
+  lastLoginAt: string | null | undefined,
+  filter: UserLastLoginFilter,
+): boolean {
+  switch (filter) {
+    case "never":
+      return !lastLoginAt;
+    case "last_7_days":
+      return !!lastLoginAt && daysSince(lastLoginAt) <= 7;
+    case "last_30_days":
+      return !!lastLoginAt && daysSince(lastLoginAt) <= 30;
+    case "older_30_days":
+      return !!lastLoginAt && daysSince(lastLoginAt) > 30;
+    case "all":
+    default:
+      return true;
+  }
+}
+
+function matchesActivityFilter(
+  stats: UserRequestStats,
+  filter: UserActivityFilter,
+): boolean {
+  switch (filter) {
+    case "has_requests":
+      return stats.totalRequests > 0;
+    case "has_active":
+      return stats.activeRequests > 0;
+    case "no_requests":
+      return stats.totalRequests === 0;
+    case "all":
+    default:
+      return true;
+  }
+}
+
+export function filterUsers(users: User[], filters: UserFilters): User[] {
+  const query = filters.search.trim().toLowerCase();
+
+  return users.filter((user) => {
+    if (!matchesLastLoginFilter(user.lastLoginAt, filters.lastLogin)) {
+      return false;
+    }
+
+    const stats = userStats(user);
+    if (!matchesActivityFilter(stats, filters.activity)) {
+      return false;
+    }
+
+    if (query) {
+      const haystack = `${user.name} ${user.email}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+
+    return true;
+  });
 }
 
 export function summarizeUserFleet(users: User[]): UserFleetSummary {
