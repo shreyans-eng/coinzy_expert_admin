@@ -22,10 +22,7 @@ const SORT_OPTIONS = [
   { value: "most_requests", label: "Most requests" },
   { value: "most_active", label: "Most active" },
   { value: "most_credits", label: "Highest credits" },
-  { value: "last_login_desc", label: "Last login (newest)" },
-  { value: "last_login_asc", label: "Last login (oldest)" },
   { value: "newest", label: "Newest joined" },
-  { value: "name", label: "Name A–Z" },
 ];
 
 export function UserFilterBar({
@@ -49,8 +46,8 @@ export function UserFilterBar({
         className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_12rem_auto]"
       >
         <Input
-          label="Search"
-          placeholder="Name or email…"
+          label="Search by email"
+          placeholder="Partial email match…"
           value={draftFilters.search}
           onChange={(e) =>
             onDraftFiltersChange({ ...draftFilters, search: e.target.value })

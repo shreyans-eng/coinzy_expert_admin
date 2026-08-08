@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { getUser } from "@/lib/admin-api";
-import { formatLastLogin, userStats } from "@/lib/user-metrics";
+import { displayUserLabel, formatLastLogin, userStats } from "@/lib/user-metrics";
 import { useApiHandler } from "@/lib/useApiHandler";
 import type { User, UserRequestStats } from "@/types/admin-api";
 import Link from "next/link";
@@ -62,8 +62,8 @@ export default function UserDetailPage() {
   return (
     <>
       <PageHeader
-        title={user.name}
-        description={user.email}
+        title={displayUserLabel(user)}
+        description={user.email ?? "No email on file"}
         action={
           <Link href="/users">
             <Button variant="secondary" size="sm">

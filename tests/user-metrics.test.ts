@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  displayUserLabel,
   filterUsers,
   sortUsers,
   summarizeUserFleet,
@@ -31,10 +32,10 @@ const sampleUsers: User[] = [
   {
     _id: "2",
     externalUserId: "ext-2",
-    name: "Bob",
+    name: null,
     email: "bob@example.com",
     creditBalance: 2,
-    lastLoginAt: "2026-08-01T00:00:00.000Z",
+    lastLoginAt: null,
     createdAt: "2026-02-01T00:00:00.000Z",
     updatedAt: "2026-02-01T00:00:00.000Z",
     stats: {
@@ -64,19 +65,16 @@ describe("user-metrics", () => {
     expect(userStats(sorted[1]).totalRequests).toBe(3);
   });
 
-  it("sortUsers orders by last login descending", () => {
-    const users: User[] = [
-      {
-        ...sampleUsers[0],
-        lastLoginAt: "2026-01-01T00:00:00.000Z",
-      },
-      sampleUsers[1],
-    ];
-    const sorted = sortUsers(users, "last_login_desc");
-    expect(sorted[0].name).toBe("Bob");
+  it("sortUsers orders by newest joined", () => {
+    const sorted = sortUsers(sampleUsers, "newest");
+    expect(sorted[0].email).toBe("bob@example.com");
   });
 
-  it("filterUsers matches search query", () => {
+  it("displayUserLabel falls back to email when name is missing", () => {
+    expect(displayUserLabel(sampleUsers[1])).toBe("bob@example.com");
+  });
+
+  it("filterUsers matches email search", () => {
     expect(filterUsers(sampleUsers, { search: "bob" })).toEqual([
       sampleUsers[1],
     ]);

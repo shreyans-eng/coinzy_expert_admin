@@ -19,6 +19,7 @@ import {
   sortUsers,
   summarizeUserFleet,
   formatLastLogin,
+  displayUserLabel,
   userStats,
   type UserFilters,
   type UserSortKey,
@@ -183,7 +184,7 @@ export default function UsersPage() {
                         <tr key={user._id} className="hover:bg-input-bg/50">
                           <td className="px-4 py-3 sm:px-6">
                             <div className="whitespace-nowrap font-medium">
-                              {user.name}
+                              {displayUserLabel(user)}
                             </div>
                             <p className="text-xs text-text-muted md:hidden">
                               {user.email || "—"}
