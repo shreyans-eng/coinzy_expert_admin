@@ -155,21 +155,25 @@ export default function UsersPage() {
                       <th className="hidden px-4 py-3 font-semibold md:table-cell sm:px-6">
                         Email
                       </th>
-                      <th className="px-4 py-3 font-semibold sm:px-6">Requests</th>
-                      <th className="hidden px-4 py-3 font-semibold sm:table-cell sm:px-6">
+                      <th className="px-4 py-3 text-right font-semibold sm:px-6">
+                        Requests
+                      </th>
+                      <th className="hidden px-4 py-3 text-right font-semibold sm:table-cell sm:px-6">
                         Active
                       </th>
-                      <th className="hidden px-4 py-3 font-semibold lg:table-cell sm:px-6">
+                      <th className="hidden px-4 py-3 text-right font-semibold lg:table-cell sm:px-6">
                         Completed
                       </th>
-                      <th className="px-4 py-3 font-semibold sm:px-6">Credits</th>
+                      <th className="px-4 py-3 text-right font-semibold sm:px-6">
+                        Credits
+                      </th>
                       <th className="hidden px-4 py-3 font-semibold lg:table-cell sm:px-6">
                         Last login
                       </th>
                       <th className="hidden px-4 py-3 font-semibold xl:table-cell sm:px-6">
                         Last request
                       </th>
-                      <th className="px-4 py-3 font-semibold sm:px-6" />
+                      <th className="px-4 py-3 text-right font-semibold sm:px-6" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -178,15 +182,17 @@ export default function UsersPage() {
                       return (
                         <tr key={user._id} className="hover:bg-input-bg/50">
                           <td className="px-4 py-3 sm:px-6">
-                            <div className="font-medium">{user.name}</div>
+                            <div className="whitespace-nowrap font-medium">
+                              {user.name}
+                            </div>
                             <p className="text-xs text-text-muted md:hidden">
-                              {user.email}
+                              {user.email || "—"}
                             </p>
                           </td>
                           <td className="hidden px-4 py-3 text-text-muted md:table-cell sm:px-6">
-                            {user.email}
+                            {user.email || "—"}
                           </td>
-                          <td className="px-4 py-3 sm:px-6">
+                          <td className="px-4 py-3 text-right sm:px-6">
                             <span className="font-semibold tabular-nums text-primary">
                               {stats.totalRequests}
                             </span>
@@ -196,14 +202,14 @@ export default function UsersPage() {
                               </p>
                             ) : null}
                           </td>
-                          <td className="hidden px-4 py-3 sm:table-cell sm:px-6">
+                          <td className="hidden px-4 py-3 text-right tabular-nums sm:table-cell sm:px-6">
                             {stats.activeRequests}
                           </td>
-                          <td className="hidden px-4 py-3 lg:table-cell sm:px-6">
+                          <td className="hidden px-4 py-3 text-right tabular-nums lg:table-cell sm:px-6">
                             {stats.completedRequests}
                           </td>
-                          <td className="px-4 py-3 sm:px-6">
-                            <span className="inline-flex items-center rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
+                          <td className="px-4 py-3 text-right sm:px-6">
+                            <span className="inline-flex min-w-[2rem] items-center justify-center rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold tabular-nums text-primary">
                               {user.creditBalance}
                             </span>
                           </td>

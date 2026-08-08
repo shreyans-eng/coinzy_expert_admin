@@ -40,14 +40,14 @@ export function UserFilterBar({
   totalCount,
 }: UserFilterBarProps) {
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onApply();
-      }}
-      className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-input-bg/40 p-4 sm:flex-row sm:flex-wrap sm:items-end"
-    >
-      <div className="min-w-[200px] flex-1">
+    <div className="mb-4 rounded-xl border border-border bg-input-bg/40 p-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onApply();
+        }}
+        className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_12rem_auto]"
+      >
         <Input
           label="Search"
           placeholder="Name or email…"
@@ -56,35 +56,34 @@ export function UserFilterBar({
             onDraftFiltersChange({ ...draftFilters, search: e.target.value })
           }
         />
-      </div>
-      <div className="w-full sm:w-44">
         <Select
           label="Sort by"
           value={draftSortKey}
           onChange={(e) => onDraftSortChange(e.target.value as UserSortKey)}
           options={SORT_OPTIONS}
+          reserveHintSpace
         />
-      </div>
-      <FormActionField>
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit" className="h-10">
-            Apply
-          </Button>
-          {hasActiveFilters ? (
-            <Button
-              type="button"
-              variant="secondary"
-              className="h-10"
-              onClick={onRefresh}
-            >
-              Refresh
+        <FormActionField>
+          <div className="flex h-10 items-center gap-2">
+            <Button type="submit" className="h-10 w-full lg:w-auto">
+              Apply
             </Button>
-          ) : null}
-        </div>
-      </FormActionField>
-      <p className="pb-2 text-xs text-text-muted sm:ml-auto">
+            {hasActiveFilters ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="h-10 shrink-0"
+                onClick={onRefresh}
+              >
+                Refresh
+              </Button>
+            ) : null}
+          </div>
+        </FormActionField>
+      </form>
+      <p className="mt-3 text-right text-xs text-text-muted">
         Showing {resultCount} of {totalCount}
       </p>
-    </form>
+    </div>
   );
 }
