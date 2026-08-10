@@ -1,9 +1,11 @@
 "use client";
 
 import { useAdminKey } from "@/components/layout/AdminAuthGuard";
+import { ExpertiseChipsInput } from "@/components/experts/ExpertiseChipsInput";
 import { Button } from "@/components/ui/Button";
 import { Card, PageHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
 import { createExpert } from "@/lib/admin-api";
@@ -21,6 +23,7 @@ const EMPTY_FORM: ExpertProfileFormValues = {
   name: "",
   email: "",
   password: "",
+  confirmPassword: "",
   supportedCountries: "",
   profilePicture: "",
   oneLineDescription: "",
@@ -86,12 +89,22 @@ export default function NewExpertPage() {
             error={errors.email}
             required
           />
-          <Input
+          <PasswordInput
             label="Password"
-            type="password"
+            autoComplete="new-password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             error={errors.password}
+            required
+          />
+          <PasswordInput
+            label="Confirm password"
+            autoComplete="new-password"
+            value={form.confirmPassword}
+            onChange={(e) =>
+              setForm({ ...form, confirmPassword: e.target.value })
+            }
+            error={errors.confirmPassword}
             required
           />
           <Input
@@ -107,13 +120,16 @@ export default function NewExpertPage() {
             label="Years of experience"
             value={form.yearsOfXp}
             onChange={(e) => setForm({ ...form, yearsOfXp: e.target.value })}
+            error={errors.yearsOfXp}
             placeholder="12 years"
+            required
           />
-          <Input
-            label="Expertise"
+          <ExpertiseChipsInput
             value={form.expertise}
-            onChange={(e) => setForm({ ...form, expertise: e.target.value })}
-            placeholder="Ancient coins"
+            onChange={(expertise) => setForm({ ...form, expertise })}
+            error={errors.expertise}
+            hint='Add multiple chips. Saved as a comma-separated string, e.g. "shreyans is good, food is good".'
+            required
           />
           <Input
             label="Profile picture URL"

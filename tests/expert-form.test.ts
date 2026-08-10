@@ -4,7 +4,9 @@ import {
   buildUpdateExpertBody,
   canSetExpertStatus,
   optionalProfileString,
+  parseExpertiseChips,
   parseSupportedCountries,
+  serializeExpertiseChips,
   validateExpertProfileForm,
 } from "@/lib/expert-form";
 
@@ -12,11 +14,12 @@ const baseForm = {
   name: "Expert One",
   email: "expert@example.com",
   password: "secret",
+  confirmPassword: "secret",
   supportedCountries: "in, gb",
   profilePicture: "https://media.example.com/a.jpg",
   oneLineDescription: " Specialist ",
   yearsOfXp: "12 years",
-  expertise: "Ancient coins",
+  expertise: "Ancient coins, British India",
 };
 
 describe("expert-form", () => {
@@ -24,6 +27,16 @@ describe("expert-form", () => {
     expect(parseSupportedCountries("in, gb, in")).toEqual(["IN", "GB", "IN"]);
     expect(parseSupportedCountries("")).toEqual([]);
     expect(parseSupportedCountries("  ")).toEqual([]);
+  });
+
+  it("parses and serializes expertise chips with comma spacing", () => {
+    expect(parseExpertiseChips("shreyans is good, food is good")).toEqual([
+      "shreyans is good",
+      "food is good",
+    ]);
+    expect(
+      serializeExpertiseChips(["shreyans is good", "food is good"]),
+    ).toBe("shreyans is good, food is good");
   });
 
   it("omits empty optional profile strings", () => {
@@ -45,7 +58,7 @@ describe("expert-form", () => {
       password: "secret",
       supportedCountries: ["IN", "GB"],
       yearsOfXp: "12 years",
-      expertise: "Ancient coins",
+      expertise: "Ancient coins, British India",
     });
     expect(body).not.toHaveProperty("isInternal");
     expect(body).not.toHaveProperty("profilePicture");
@@ -54,40 +67,61 @@ describe("expert-form", () => {
 
   it("builds update body and only includes password when set", () => {
     expect(
-      buildUpdateExpertBody({ ...baseForm, password: "" }),
+      buildUpdateExpertBody({ ...baseForm, password: "", confirmPassword: "" }),
     ).not.toHaveProperty("password");
     expect(
       buildUpdateExpertBody({ ...baseForm, password: "new-secret" }).password,
     ).toBe("new-secret");
   });
 
-  it("does not send null for cleared optional profile fields", () => {
+  it("always sends required years and expertise on update", () => {
     const body = buildUpdateExpertBody({
       ...baseForm,
       password: "",
+      confirmPassword: "",
       profilePicture: "",
       oneLineDescription: "",
-      yearsOfXp: "",
-      expertise: "",
     });
     expect(body).toEqual({
       name: "Expert One",
       email: "expert@example.com",
       supportedCountries: ["IN", "GB"],
+      yearsOfXp: "12 years",
+      expertise: "Ancient coins, British India",
     });
   });
 
-  it("validates required create fields", () => {
+  it("validates required create fields including confirm password", () => {
     expect(
       validateExpertProfileForm(
-        { ...baseForm, name: "", email: "", password: "" },
+        {
+          ...baseForm,
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          yearsOfXp: "",
+          expertise: "",
+        },
         { requirePassword: true },
       ),
     ).toEqual({
       name: "Name is required",
       email: "Email is required",
+      yearsOfXp: "Years of experience is required",
+      expertise: "Expertise is required",
       password: "Password is required",
+      confirmPassword: "Confirm password is required",
     });
+  });
+
+  it("requires matching passwords when provided", () => {
+    expect(
+      validateExpertProfileForm(
+        { ...baseForm, password: "a", confirmPassword: "b" },
+        { requirePassword: true },
+      ).confirmPassword,
+    ).toBe("Passwords do not match");
   });
 
   it("blocks deactivation of internal experts", () => {

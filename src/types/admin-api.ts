@@ -194,10 +194,10 @@ export type CreateExpertBody = {
   email: string;
   password: string;
   supportedCountries: string[];
+  yearsOfXp: string;
+  expertise: string;
   profilePicture?: string;
   oneLineDescription?: string;
-  yearsOfXp?: string;
-  expertise?: string;
 };
 
 /** Writable fields for PATCH /admin/experts/:id. Never include isInternal or status. */
@@ -206,10 +206,10 @@ export type UpdateExpertBody = {
   email?: string;
   password?: string;
   supportedCountries?: string[];
-  profilePicture?: string;
-  oneLineDescription?: string;
   yearsOfXp?: string;
   expertise?: string;
+  profilePicture?: string;
+  oneLineDescription?: string;
 };
 
 export type CreditAdjustBody = {

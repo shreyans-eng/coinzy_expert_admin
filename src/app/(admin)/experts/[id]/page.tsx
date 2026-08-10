@@ -6,11 +6,13 @@ import { ExpertActivityTimeline } from "@/components/experts/ExpertActivityTimel
 import { ExpertAllocationLookup } from "@/components/experts/ExpertAllocationLookup";
 import { ExpertPerformancePanel } from "@/components/experts/ExpertPerformancePanel";
 import { ExpertProfileHeader } from "@/components/experts/ExpertProfileHeader";
+import { ExpertiseChipsInput } from "@/components/experts/ExpertiseChipsInput";
 import { Badge, statusBadgeVariant } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, LoadingState, PageHeader } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -43,6 +45,7 @@ function formFromExpert(data: Expert): ExpertProfileFormValues {
     name: data.name,
     email: data.email,
     password: "",
+    confirmPassword: "",
     supportedCountries: data.supportedCountries.join(", "),
     profilePicture: data.profilePicture ?? "",
     oneLineDescription: data.oneLineDescription ?? "",
@@ -68,6 +71,7 @@ export default function ExpertDetailPage() {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
     supportedCountries: "",
     profilePicture: "",
     oneLineDescription: "",
@@ -248,14 +252,24 @@ export default function ExpertDetailPage() {
                   error={errors.email}
                   required
                 />
-                <Input
+                <PasswordInput
                   label="New password"
-                  type="password"
+                  autoComplete="new-password"
                   value={form.password}
                   onChange={(e) =>
                     setForm({ ...form, password: e.target.value })
                   }
+                  error={errors.password}
                   hint="Leave blank to keep current password"
+                />
+                <PasswordInput
+                  label="Confirm new password"
+                  autoComplete="new-password"
+                  value={form.confirmPassword}
+                  onChange={(e) =>
+                    setForm({ ...form, confirmPassword: e.target.value })
+                  }
+                  error={errors.confirmPassword}
                 />
                 <Input
                   label="Supported countries"
@@ -272,15 +286,16 @@ export default function ExpertDetailPage() {
                   onChange={(e) =>
                     setForm({ ...form, yearsOfXp: e.target.value })
                   }
+                  error={errors.yearsOfXp}
                   placeholder="12 years"
+                  required
                 />
-                <Input
-                  label="Expertise"
+                <ExpertiseChipsInput
                   value={form.expertise}
-                  onChange={(e) =>
-                    setForm({ ...form, expertise: e.target.value })
-                  }
-                  placeholder="Ancient coins"
+                  onChange={(expertise) => setForm({ ...form, expertise })}
+                  error={errors.expertise}
+                  hint='Add multiple chips. Saved as a comma-separated string, e.g. "shreyans is good, food is good".'
+                  required
                 />
                 <Input
                   label="Profile picture URL"
