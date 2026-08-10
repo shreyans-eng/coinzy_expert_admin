@@ -14,6 +14,7 @@ import { CopyId } from "@/components/ui/CopyId";
 import { Pagination } from "@/components/ui/Pagination";
 import { useToast } from "@/components/ui/Toast";
 import { listUsers } from "@/lib/admin-api";
+import { downloadUsersExcel } from "@/lib/export-excel";
 import { DEFAULT_PAGE_SIZE, paginateSlice } from "@/lib/pagination";
 import {
   filterUsers,
@@ -108,6 +109,15 @@ export default function UsersPage() {
       <PageHeader
         title="Users"
         description="Request activity, credits, and user management."
+        action={
+          <Button
+            variant="secondary"
+            disabled={loading || sorted.length === 0}
+            onClick={() => downloadUsersExcel(sorted)}
+          >
+            Download Excel
+          </Button>
+        }
       />
 
       {!loading && users.length > 0 ? (

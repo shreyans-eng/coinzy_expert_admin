@@ -24,6 +24,7 @@ import {
   type ExpertSortKey,
 } from "@/lib/expert-metrics";
 import { listExperts } from "@/lib/admin-api";
+import { downloadExpertsExcel } from "@/lib/export-excel";
 import { DEFAULT_PAGE_SIZE, paginateSlice } from "@/lib/pagination";
 import { useApiHandler } from "@/lib/useApiHandler";
 import type { Expert } from "@/types/admin-api";
@@ -94,9 +95,18 @@ export default function ExpertsPage() {
         title="Experts"
         description="Dashboard, filters, and expert management."
         action={
-          <Link href="/experts/new">
-            <Button>Add expert</Button>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="secondary"
+              disabled={loading || sorted.length === 0}
+              onClick={() => downloadExpertsExcel(sorted)}
+            >
+              Download Excel
+            </Button>
+            <Link href="/experts/new">
+              <Button>Add expert</Button>
+            </Link>
+          </div>
         }
       />
 
