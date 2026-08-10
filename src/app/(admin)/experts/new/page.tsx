@@ -118,10 +118,12 @@ export default function NewExpertPage() {
           />
           <Input
             label="Years of experience"
+            inputMode="numeric"
             value={form.yearsOfXp}
             onChange={(e) => setForm({ ...form, yearsOfXp: e.target.value })}
             error={errors.yearsOfXp}
-            placeholder="12 years"
+            hint='Enter a number (e.g. 12). Saved as "12 years".'
+            placeholder="12"
             required
           />
           <ExpertiseChipsInput

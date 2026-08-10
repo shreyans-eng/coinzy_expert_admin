@@ -43,6 +43,29 @@ export function serializeExpertiseChips(chips: string[]): string {
     .join(", ");
 }
 
+/**
+ * Normalize years input for the API.
+ * Typing `12` becomes `12 years`; `12 years` / `12 year` stay normalized.
+ */
+export function normalizeYearsOfXp(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+
+  const match = trimmed.match(/^(\d+(?:\.\d+)?)\s*(years?)?$/i);
+  if (!match) return "";
+
+  return `${match[1]} years`;
+}
+
+/** Show a bare number in the form when stored value is like "12 years". */
+export function yearsOfXpInputValue(
+  stored: string | null | undefined,
+): string {
+  if (!stored) return "";
+  const match = stored.trim().match(/^(\d+(?:\.\d+)?)\s*years?$/i);
+  return match ? match[1] : stored.trim();
+}
+
 export function validateExpertProfileForm(
   form: ExpertProfileFormValues,
   options: { requirePassword: boolean },
@@ -50,8 +73,8 @@ export function validateExpertProfileForm(
   const errors: Record<string, string> = {};
   if (!form.name.trim()) errors.name = "Name is required";
   if (!form.email.trim()) errors.email = "Email is required";
-  if (!form.yearsOfXp.trim()) {
-    errors.yearsOfXp = "Years of experience is required";
+  if (!normalizeYearsOfXp(form.yearsOfXp)) {
+    errors.yearsOfXp = "Enter years of experience as a number (e.g. 12)";
   }
   if (parseExpertiseChips(form.expertise).length === 0) {
     errors.expertise = "Expertise is required";
@@ -95,7 +118,7 @@ export function buildCreateExpertBody(
     email: form.email.trim(),
     password: form.password,
     supportedCountries: parseSupportedCountries(form.supportedCountries),
-    yearsOfXp: form.yearsOfXp.trim(),
+    yearsOfXp: normalizeYearsOfXp(form.yearsOfXp),
     expertise: serializeExpertiseChips(parseExpertiseChips(form.expertise)),
   };
 
@@ -115,7 +138,7 @@ export function buildUpdateExpertBody(
     name: form.name.trim(),
     email: form.email.trim(),
     supportedCountries: parseSupportedCountries(form.supportedCountries),
-    yearsOfXp: form.yearsOfXp.trim(),
+    yearsOfXp: normalizeYearsOfXp(form.yearsOfXp),
     expertise: serializeExpertiseChips(parseExpertiseChips(form.expertise)),
   };
 

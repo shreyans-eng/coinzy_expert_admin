@@ -24,6 +24,7 @@ import {
   buildUpdateExpertBody,
   canSetExpertStatus,
   validateExpertProfileForm,
+  yearsOfXpInputValue,
   type ExpertProfileFormValues,
 } from "@/lib/expert-form";
 import { useApiHandler } from "@/lib/useApiHandler";
@@ -49,7 +50,7 @@ function formFromExpert(data: Expert): ExpertProfileFormValues {
     supportedCountries: data.supportedCountries.join(", "),
     profilePicture: data.profilePicture ?? "",
     oneLineDescription: data.oneLineDescription ?? "",
-    yearsOfXp: data.yearsOfXp ?? "",
+    yearsOfXp: yearsOfXpInputValue(data.yearsOfXp),
     expertise: data.expertise ?? "",
   };
 }
@@ -282,12 +283,14 @@ export default function ExpertDetailPage() {
                 />
                 <Input
                   label="Years of experience"
+                  inputMode="numeric"
                   value={form.yearsOfXp}
                   onChange={(e) =>
                     setForm({ ...form, yearsOfXp: e.target.value })
                   }
                   error={errors.yearsOfXp}
-                  placeholder="12 years"
+                  hint='Enter a number (e.g. 12). Saved as "12 years".'
+                  placeholder="12"
                   required
                 />
                 <ExpertiseChipsInput

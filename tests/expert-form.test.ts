@@ -3,11 +3,13 @@ import {
   buildCreateExpertBody,
   buildUpdateExpertBody,
   canSetExpertStatus,
+  normalizeYearsOfXp,
   optionalProfileString,
   parseExpertiseChips,
   parseSupportedCountries,
   serializeExpertiseChips,
   validateExpertProfileForm,
+  yearsOfXpInputValue,
 } from "@/lib/expert-form";
 
 const baseForm = {
@@ -18,7 +20,7 @@ const baseForm = {
   supportedCountries: "in, gb",
   profilePicture: "https://media.example.com/a.jpg",
   oneLineDescription: " Specialist ",
-  yearsOfXp: "12 years",
+  yearsOfXp: "12",
   expertise: "Ancient coins, British India",
 };
 
@@ -37,6 +39,14 @@ describe("expert-form", () => {
     expect(
       serializeExpertiseChips(["shreyans is good", "food is good"]),
     ).toBe("shreyans is good, food is good");
+  });
+
+  it("normalizes years input to '<n> years' for the API", () => {
+    expect(normalizeYearsOfXp("12")).toBe("12 years");
+    expect(normalizeYearsOfXp("12 years")).toBe("12 years");
+    expect(normalizeYearsOfXp("12 year")).toBe("12 years");
+    expect(normalizeYearsOfXp("")).toBe("");
+    expect(yearsOfXpInputValue("12 years")).toBe("12");
   });
 
   it("omits empty optional profile strings", () => {
@@ -108,7 +118,7 @@ describe("expert-form", () => {
     ).toEqual({
       name: "Name is required",
       email: "Email is required",
-      yearsOfXp: "Years of experience is required",
+      yearsOfXp: "Enter years of experience as a number (e.g. 12)",
       expertise: "Expertise is required",
       password: "Password is required",
       confirmPassword: "Confirm password is required",
