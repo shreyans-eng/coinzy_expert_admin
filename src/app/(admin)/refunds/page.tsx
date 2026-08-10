@@ -1,14 +1,14 @@
+import { OfflineRefundForm } from "@/components/refunds/OfflineRefundForm";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, PageHeader } from "@/components/ui/Card";
-import Link from "next/link";
 
 export default function RefundsPage() {
   return (
     <>
       <PageHeader
         title="Refunds"
-        description="Admin-approved refund queue and legacy manual credit restoration."
+        description="Handle offline refunds manually until the Refund Queue APIs ship."
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -18,11 +18,12 @@ export default function RefundsPage() {
               Phase B — coming soon
             </Badge>
             <p className="max-w-md text-sm text-text-muted">
-              Pending refunds will appear here once backend ships{" "}
+              Approve / Reject is not implemented yet. Pending refunds will appear
+              here once backend ships{" "}
               <code className="rounded bg-input-bg px-1.5 py-0.5 font-mono text-xs">
                 GET /admin/requests?status=refund_pending
               </code>{" "}
-              and approve/reject endpoints.
+              and the approve/reject endpoints.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Button disabled title="501 — not implemented">
@@ -36,42 +37,35 @@ export default function RefundsPage() {
         </Card>
 
         <Card title="Legacy manual flow (use today)">
-          <p className="text-sm text-text-muted">
-            No automated refund API exists yet. When a user requests a refund
-            offline:
+          <p className="mb-4 text-sm text-text-muted">
+            No automated refund API exists yet. Refund the store payment outside
+            this app, then restore credits here via{" "}
+            <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
+              POST /admin/users/:userId/credits/adjust
+            </code>
+            .
           </p>
-          <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-text">
-            <li>Review the case (request MongoDB <code className="font-mono text-xs">_id</code>, not display ID).</li>
-            <li>
-              Process the <strong>Apple/Google store refund</strong> outside this
-              app (App Store Connect / Play Console).
-            </li>
-            <li>
-              Restore the in-app credit via{" "}
-              <Link href="/users" className="font-medium text-primary hover:underline">
-                Users → Adjust credits
-              </Link>
-              :
-            </li>
-          </ol>
-          <pre className="mt-4 overflow-x-auto rounded-xl border border-border bg-input-bg p-4 text-xs leading-relaxed">
-{`POST /admin/users/:userId/credits/adjust
-x-admin-key: <ADMIN_API_KEY>
-
-{
-  "amount": 1,
-  "reason": "offline_refund_approved_for_request_<requestId>"
-}`}
-          </pre>
-          <p className="mt-4 text-xs text-text-muted">
-            This writes ledger type{" "}
-            <code className="rounded bg-input-bg px-1 py-0.5">admin_adjustment</code>,
-            not{" "}
-            <code className="rounded bg-input-bg px-1 py-0.5">refund</code>.
-            Request status is not updated automatically.
-          </p>
+          <OfflineRefundForm />
         </Card>
       </div>
+
+      <Card title="Current limitations" className="mt-6">
+        <ul className="space-y-2 text-sm text-text-muted">
+          <li>✅ Restores the user&apos;s credits</li>
+          <li>✅ Leaves an audit trail through the adjustment reason</li>
+          <li>❌ Does not create a <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">refund</code> ledger entry</li>
+          <li>
+            ❌ Does not automatically change request status to{" "}
+            <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
+              refunded
+            </code>
+          </li>
+        </ul>
+        <p className="mt-4 text-sm text-text-muted">
+          Those last two items require the backend refund APIs and the planned
+          Refund Queue / Approve / Reject flow.
+        </p>
+      </Card>
 
       <Card title="Target flow (Phase A–C)" className="mt-6">
         <div className="space-y-4 text-sm text-text-muted">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CopyId } from "@/components/ui/CopyId";
 import type {
   AllocationRequestContext,
   AllocationUserContext,
@@ -24,6 +25,12 @@ export function AllocationContextPanel({ request, user }: Props) {
             <div className="flex justify-between gap-4">
               <dt className="text-text-muted">Display ID</dt>
               <dd className="font-medium">{request.displayId ?? "—"}</dd>
+            </div>
+            <div className="flex items-start justify-between gap-4">
+              <dt className="pt-0.5 text-text-muted">Mongo ID</dt>
+              <dd>
+                <CopyId value={request._id} label="Request Mongo ID" />
+              </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-text-muted">Status</dt>
@@ -79,9 +86,11 @@ export function AllocationContextPanel({ request, user }: Props) {
               <dt className="text-text-muted">External ID</dt>
               <dd className="font-mono text-xs">{user.externalUserId}</dd>
             </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-text-muted">User ID</dt>
-              <dd className="font-mono text-xs">{user._id}</dd>
+            <div className="flex items-start justify-between gap-4">
+              <dt className="pt-0.5 text-text-muted">User Mongo ID</dt>
+              <dd>
+                <CopyId value={user._id} label="User Mongo ID" />
+              </dd>
             </div>
           </dl>
           <div className="mt-4">

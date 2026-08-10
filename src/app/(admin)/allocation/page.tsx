@@ -10,6 +10,7 @@ import {
   LoadingState,
   PageHeader,
 } from "@/components/ui/Card";
+import { CopyId } from "@/components/ui/CopyId";
 import { Input } from "@/components/ui/Input";
 import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
@@ -334,14 +335,17 @@ function AllocationPageContent() {
                   <tr className="border-b border-border text-xs uppercase tracking-wide text-text-muted">
                     <th className="px-4 py-3 font-semibold sm:px-6">Attempted</th>
                     <th className="px-4 py-3 font-semibold sm:px-6">Display ID</th>
+                    <th className="px-4 py-3 font-semibold sm:px-6">
+                      Request Mongo ID
+                    </th>
                     <th className="hidden px-4 py-3 font-semibold md:table-cell sm:px-6">
                       User
                     </th>
                     <th className="hidden px-4 py-3 font-semibold lg:table-cell sm:px-6">
-                      Credits
+                      User Mongo ID
                     </th>
-                    <th className="hidden px-4 py-3 font-semibold md:table-cell sm:px-6">
-                      Request ID
+                    <th className="hidden px-4 py-3 font-semibold lg:table-cell sm:px-6">
+                      Credits
                     </th>
                     <th className="px-4 py-3 font-semibold sm:px-6">Stage</th>
                     <th className="hidden px-4 py-3 font-semibold sm:table-cell sm:px-6">
@@ -370,6 +374,12 @@ function AllocationPageContent() {
                           </p>
                         ) : null}
                       </td>
+                      <td className="px-4 py-3 sm:px-6">
+                        <CopyId
+                          value={item.requestId}
+                          label="Request Mongo ID"
+                        />
+                      </td>
                       <td className="hidden px-4 py-3 md:table-cell sm:px-6">
                         {item.user ? (
                           <div>
@@ -389,15 +399,22 @@ function AllocationPageContent() {
                       </td>
                       <td className="hidden px-4 py-3 lg:table-cell sm:px-6">
                         {item.user ? (
+                          <CopyId
+                            value={item.user._id}
+                            label="User Mongo ID"
+                          />
+                        ) : (
+                          <span className="text-text-muted">—</span>
+                        )}
+                      </td>
+                      <td className="hidden px-4 py-3 lg:table-cell sm:px-6">
+                        {item.user ? (
                           <span className="inline-flex items-center rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
                             {item.user.creditBalance}
                           </span>
                         ) : (
                           <span className="text-text-muted">—</span>
                         )}
-                      </td>
-                      <td className="hidden px-4 py-3 font-mono text-xs text-text-muted md:table-cell sm:px-6">
-                        {item.requestId}
                       </td>
                       <td className="px-4 py-3 sm:px-6">
                         <Badge variant="default">

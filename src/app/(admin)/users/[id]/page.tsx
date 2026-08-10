@@ -11,6 +11,7 @@ import {
   LoadingState,
   PageHeader,
 } from "@/components/ui/Card";
+import { CopyId } from "@/components/ui/CopyId";
 import { useToast } from "@/components/ui/Toast";
 import { getUser } from "@/lib/admin-api";
 import { displayUserLabel, formatLastLogin, userStats } from "@/lib/user-metrics";
@@ -111,10 +112,10 @@ export default function UserDetailPage() {
 
         <Card title="Account details">
           <dl className="space-y-4 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-text-muted">MongoDB ID</dt>
-              <dd className="max-w-[60%] break-all text-right font-mono text-xs">
-                {user._id}
+            <div className="flex items-start justify-between gap-4">
+              <dt className="pt-0.5 text-text-muted">MongoDB ID</dt>
+              <dd>
+                <CopyId value={user._id} label="User Mongo ID" />
               </dd>
             </div>
             <div className="flex justify-between gap-4">

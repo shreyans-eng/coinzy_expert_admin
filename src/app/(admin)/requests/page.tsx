@@ -49,11 +49,11 @@ export default function RequestsPage() {
             </li>
           </ul>
           <p className="mt-6 text-sm text-text-muted">
-            Use the{" "}
+            Until the request list ships, copy request Mongo IDs from{" "}
             <a href="/allocation" className="font-medium text-primary hover:underline">
               Allocation
             </a>{" "}
-            page to audit scoring for individual requests.
+            (Request Mongo ID column) for offline refunds.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <Button disabled title="501 Not Implemented">

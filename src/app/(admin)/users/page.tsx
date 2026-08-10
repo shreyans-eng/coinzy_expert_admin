@@ -10,6 +10,7 @@ import {
   LoadingState,
   PageHeader,
 } from "@/components/ui/Card";
+import { CopyId } from "@/components/ui/CopyId";
 import { Pagination } from "@/components/ui/Pagination";
 import { useToast } from "@/components/ui/Toast";
 import { listUsers } from "@/lib/admin-api";
@@ -153,6 +154,9 @@ export default function UsersPage() {
                   <thead>
                     <tr className="border-b border-border text-xs uppercase tracking-wide text-text-muted">
                       <th className="px-4 py-3 font-semibold sm:px-6">Name</th>
+                      <th className="px-4 py-3 font-semibold sm:px-6">
+                        Mongo ID
+                      </th>
                       <th className="hidden px-4 py-3 font-semibold md:table-cell sm:px-6">
                         Email
                       </th>
@@ -189,6 +193,9 @@ export default function UsersPage() {
                             <p className="text-xs text-text-muted md:hidden">
                               {user.email || "—"}
                             </p>
+                          </td>
+                          <td className="px-4 py-3 sm:px-6">
+                            <CopyId value={user._id} label="User Mongo ID" />
                           </td>
                           <td className="hidden px-4 py-3 text-text-muted md:table-cell sm:px-6">
                             {user.email || "—"}
