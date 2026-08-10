@@ -32,6 +32,11 @@ export function ExpertProfileHeader({ expert }: { expert: Expert }) {
         {expert.oneLineDescription ? (
           <p className="mt-2 text-sm text-text">{expert.oneLineDescription}</p>
         ) : null}
+        {(expert.expertise || expert.yearsOfXp) && (
+          <p className="mt-2 text-sm text-text-muted">
+            {[expert.expertise, expert.yearsOfXp].filter(Boolean).join(" · ")}
+          </p>
+        )}
         <p className="mt-2 font-mono text-xs text-text-muted">ID: {expert._id}</p>
         <p className="mt-1 text-xs text-text-muted">
           Last login: {formatLastLogin(expert.lastLoginAt)}

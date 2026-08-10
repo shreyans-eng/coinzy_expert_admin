@@ -12,6 +12,8 @@ export type Expert = {
   email: string;
   profilePicture: string | null;
   oneLineDescription: string | null;
+  yearsOfXp: string | null;
+  expertise: string | null;
   isInternal: boolean;
   isAvailableForRequests: boolean;
   supportedCountries: string[];
@@ -186,6 +188,7 @@ export type ApiEnvelope<T> = {
   data: T;
 };
 
+/** Writable fields for POST /admin/experts. Never include isInternal. */
 export type CreateExpertBody = {
   name: string;
   email: string;
@@ -193,9 +196,21 @@ export type CreateExpertBody = {
   supportedCountries: string[];
   profilePicture?: string;
   oneLineDescription?: string;
+  yearsOfXp?: string;
+  expertise?: string;
 };
 
-export type UpdateExpertBody = Partial<CreateExpertBody>;
+/** Writable fields for PATCH /admin/experts/:id. Never include isInternal or status. */
+export type UpdateExpertBody = {
+  name?: string;
+  email?: string;
+  password?: string;
+  supportedCountries?: string[];
+  profilePicture?: string;
+  oneLineDescription?: string;
+  yearsOfXp?: string;
+  expertise?: string;
+};
 
 export type CreditAdjustBody = {
   amount: number;

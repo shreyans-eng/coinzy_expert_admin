@@ -7,10 +7,26 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
 import { createExpert } from "@/lib/admin-api";
+import {
+  buildCreateExpertBody,
+  validateExpertProfileForm,
+  type ExpertProfileFormValues,
+} from "@/lib/expert-form";
 import { useApiHandler } from "@/lib/useApiHandler";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+const EMPTY_FORM: ExpertProfileFormValues = {
+  name: "",
+  email: "",
+  password: "",
+  supportedCountries: "",
+  profilePicture: "",
+  oneLineDescription: "",
+  yearsOfXp: "",
+  expertise: "",
+};
 
 export default function NewExpertPage() {
   const adminKey = useAdminKey();
@@ -19,49 +35,19 @@ export default function NewExpertPage() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    supportedCountries: "",
-    profilePicture: "",
-    oneLineDescription: "",
-  });
-
-  const validate = () => {
-    const next: Record<string, string> = {};
-    if (!form.name.trim()) next.name = "Name is required";
-    if (!form.email.trim()) next.email = "Email is required";
-    if (!form.password.trim()) next.password = "Password is required";
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
+  const [form, setForm] = useState<ExpertProfileFormValues>(EMPTY_FORM);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    const nextErrors = validateExpertProfileForm(form, {
+      requirePassword: true,
+    });
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
     setLoading(true);
     try {
-      const countries = form.supportedCountries
-        .split(",")
-        .map((c) => c.trim().toUpperCase())
-        .filter(Boolean);
-
-      const expert = await createExpert(adminKey, {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        password: form.password,
-        supportedCountries: countries,
-        ...(form.profilePicture.trim()
-          ? { profilePicture: form.profilePicture.trim() }
-          : {}),
-        ...(form.oneLineDescription.trim()
-          ? { oneLineDescription: form.oneLineDescription.trim() }
-          : {}),
-      });
-
+      const expert = await createExpert(adminKey, buildCreateExpertBody(form));
       showToast("Expert created", "success");
       router.push(`/experts/${expert._id}`);
     } catch (err) {
@@ -118,12 +104,25 @@ export default function NewExpertPage() {
             placeholder="IN, GB"
           />
           <Input
+            label="Years of experience"
+            value={form.yearsOfXp}
+            onChange={(e) => setForm({ ...form, yearsOfXp: e.target.value })}
+            placeholder="12 years"
+          />
+          <Input
+            label="Expertise"
+            value={form.expertise}
+            onChange={(e) => setForm({ ...form, expertise: e.target.value })}
+            placeholder="Ancient coins"
+          />
+          <Input
             label="Profile picture URL"
             type="url"
             value={form.profilePicture}
             onChange={(e) =>
               setForm({ ...form, profilePicture: e.target.value })
             }
+            hint="Optional HTTPS URL"
             placeholder="https://..."
           />
           <Textarea

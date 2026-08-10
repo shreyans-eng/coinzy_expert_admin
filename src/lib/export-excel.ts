@@ -14,6 +14,8 @@ export type ExpertExportRow = {
   Type: string;
   Available: string;
   Countries: string;
+  Expertise: string;
+  "Years of experience": string;
   "Active requests": number;
   Completed: number;
   "Missed deadlines": number;
@@ -61,6 +63,8 @@ export function expertToExportRow(expert: Expert): ExpertExportRow {
       expert.supportedCountries.length > 0
         ? expert.supportedCountries.join(", ")
         : "All countries",
+    Expertise: expert.expertise ?? "",
+    "Years of experience": expert.yearsOfXp ?? "",
     "Active requests": expert.activeCommittedRequestCount,
     Completed: expert.stats.completedCount,
     "Missed deadlines": expert.stats.missedDeadlineCount,

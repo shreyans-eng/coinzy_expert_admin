@@ -18,6 +18,12 @@ import {
   updateExpert,
   updateExpertStatus,
 } from "@/lib/admin-api";
+import {
+  buildUpdateExpertBody,
+  canSetExpertStatus,
+  validateExpertProfileForm,
+  type ExpertProfileFormValues,
+} from "@/lib/expert-form";
 import { useApiHandler } from "@/lib/useApiHandler";
 import type { Expert, ExpertStatus } from "@/types/admin-api";
 import Link from "next/link";
@@ -32,6 +38,19 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "allocation", label: "Allocation" },
 ];
 
+function formFromExpert(data: Expert): ExpertProfileFormValues {
+  return {
+    name: data.name,
+    email: data.email,
+    password: "",
+    supportedCountries: data.supportedCountries.join(", "),
+    profilePicture: data.profilePicture ?? "",
+    oneLineDescription: data.oneLineDescription ?? "",
+    yearsOfXp: data.yearsOfXp ?? "",
+    expertise: data.expertise ?? "",
+  };
+}
+
 export default function ExpertDetailPage() {
   const { id } = useParams<{ id: string }>();
   const adminKey = useAdminKey();
@@ -42,16 +61,18 @@ export default function ExpertDetailPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("overview");
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [statusDialog, setStatusDialog] = useState<ExpertStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
-
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ExpertProfileFormValues>({
     name: "",
     email: "",
     password: "",
     supportedCountries: "",
     profilePicture: "",
     oneLineDescription: "",
+    yearsOfXp: "",
+    expertise: "",
   });
 
   const loadExpert = async () => {
@@ -59,14 +80,8 @@ export default function ExpertDetailPage() {
     try {
       const data = await getExpert(adminKey, id);
       setExpert(data);
-      setForm({
-        name: data.name,
-        email: data.email,
-        password: "",
-        supportedCountries: data.supportedCountries.join(", "),
-        profilePicture: data.profilePicture ?? "",
-        oneLineDescription: data.oneLineDescription ?? "",
-      });
+      setForm(formFromExpert(data));
+      setErrors({});
     } catch (err) {
       handleApiError(err, (msg) => showToast(msg, "error"));
     } finally {
@@ -81,25 +96,21 @@ export default function ExpertDetailPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    const nextErrors = validateExpertProfileForm(form, {
+      requirePassword: false,
+    });
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     setSaving(true);
     try {
-      const countries = form.supportedCountries
-        .split(",")
-        .map((c) => c.trim().toUpperCase())
-        .filter(Boolean);
-
-      const body: Record<string, unknown> = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        supportedCountries: countries,
-        profilePicture: form.profilePicture.trim() || null,
-        oneLineDescription: form.oneLineDescription.trim() || null,
-      };
-      if (form.password.trim()) body.password = form.password;
-
-      const updated = await updateExpert(adminKey, id, body);
+      const updated = await updateExpert(
+        adminKey,
+        id,
+        buildUpdateExpertBody(form),
+      );
       setExpert(updated);
-      setForm((f) => ({ ...f, password: "" }));
+      setForm(formFromExpert(updated));
       showToast("Expert updated", "success");
     } catch (err) {
       handleApiError(err, (msg) => showToast(msg, "error"));
@@ -109,7 +120,13 @@ export default function ExpertDetailPage() {
   };
 
   const confirmStatusChange = async () => {
-    if (!statusDialog) return;
+    if (!statusDialog || !expert) return;
+    if (!canSetExpertStatus(expert.isInternal, statusDialog)) {
+      showToast("Internal expert cannot be deactivated", "error");
+      setStatusDialog(null);
+      return;
+    }
+
     setStatusLoading(true);
     try {
       const updated = await updateExpertStatus(adminKey, id, statusDialog);
@@ -131,6 +148,11 @@ export default function ExpertDetailPage() {
   }
 
   const statusOptions: ExpertStatus[] = ["active", "suspended", "blocked"];
+  const availableStatusActions = statusOptions.filter(
+    (status) =>
+      status !== expert.status &&
+      canSetExpertStatus(expert.isInternal, status),
+  );
 
   return (
     <>
@@ -179,10 +201,14 @@ export default function ExpertDetailPage() {
                 {expert.status}
               </Badge>
             </p>
-            <div className="flex flex-wrap gap-2">
-              {statusOptions
-                .filter((s) => s !== expert.status)
-                .map((status) => (
+            {expert.isInternal ? (
+              <p className="mb-4 text-sm text-text-muted">
+                Internal experts cannot be suspended or blocked.
+              </p>
+            ) : null}
+            {availableStatusActions.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {availableStatusActions.map((status) => (
                   <Button
                     key={status}
                     variant={status === "blocked" ? "danger" : "secondary"}
@@ -192,7 +218,12 @@ export default function ExpertDetailPage() {
                     Set {status}
                   </Button>
                 ))}
-            </div>
+              </div>
+            ) : (
+              <p className="text-sm text-text-muted">
+                No status changes available.
+              </p>
+            )}
           </Card>
         </div>
       ) : null}
@@ -206,6 +237,7 @@ export default function ExpertDetailPage() {
                   label="Name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  error={errors.name}
                   required
                 />
                 <Input
@@ -213,6 +245,7 @@ export default function ExpertDetailPage() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  error={errors.email}
                   required
                 />
                 <Input
@@ -234,12 +267,29 @@ export default function ExpertDetailPage() {
                   placeholder="IN, GB, US"
                 />
                 <Input
+                  label="Years of experience"
+                  value={form.yearsOfXp}
+                  onChange={(e) =>
+                    setForm({ ...form, yearsOfXp: e.target.value })
+                  }
+                  placeholder="12 years"
+                />
+                <Input
+                  label="Expertise"
+                  value={form.expertise}
+                  onChange={(e) =>
+                    setForm({ ...form, expertise: e.target.value })
+                  }
+                  placeholder="Ancient coins"
+                />
+                <Input
                   label="Profile picture URL"
                   type="url"
                   value={form.profilePicture}
                   onChange={(e) =>
                     setForm({ ...form, profilePicture: e.target.value })
                   }
+                  hint="Optional HTTPS URL. Leave blank to keep the current value."
                 />
                 {form.profilePicture.trim() ? (
                   <div className="rounded-xl border border-border bg-input-bg p-3">
@@ -271,7 +321,7 @@ export default function ExpertDetailPage() {
               </form>
             </Card>
           </div>
-          <Card title="Editable via API">
+          <Card title="Field notes">
             <dl className="space-y-3 text-sm">
               <div>
                 <dt className="text-text-muted">Availability</dt>
@@ -287,11 +337,21 @@ export default function ExpertDetailPage() {
                   {expert.isInternal ? "Yes — env-managed" : "No"}
                 </dd>
               </div>
+              <div>
+                <dt className="text-text-muted">Countries</dt>
+                <dd className="font-medium">
+                  {expert.supportedCountries.length > 0
+                    ? expert.supportedCountries.join(", ")
+                    : "All countries"}
+                </dd>
+              </div>
             </dl>
             <p className="mt-4 text-xs text-text-muted">
-              Bulk country reassignment (
-              <code className="font-mono">PATCH /admin/experts/:id/countries</code>
-              ) is not implemented yet. Edit countries in the form above.
+              Status changes use{" "}
+              <code className="font-mono">PATCH /admin/experts/:id/status</code>
+              . System-managed fields (workload, stats, timestamps) are
+              read-only. Empty optional profile fields are omitted on save so
+              existing values are kept.
             </p>
           </Card>
         </div>
