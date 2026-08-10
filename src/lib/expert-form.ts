@@ -1,5 +1,7 @@
 import type { CreateExpertBody, UpdateExpertBody } from "@/types/admin-api";
 
+export const ONE_LINE_DESCRIPTION_MAX = 200;
+
 /** Backend rejects empty/null optional profile strings — omit them instead. */
 export function optionalProfileString(
   value: string | null | undefined,
@@ -66,6 +68,11 @@ export function yearsOfXpInputValue(
   return match ? match[1] : stored.trim();
 }
 
+/** Clamp description to the API-facing max length. */
+export function clampOneLineDescription(value: string): string {
+  return value.slice(0, ONE_LINE_DESCRIPTION_MAX);
+}
+
 export function validateExpertProfileForm(
   form: ExpertProfileFormValues,
   options: { requirePassword: boolean },
@@ -78,6 +85,9 @@ export function validateExpertProfileForm(
   }
   if (parseExpertiseChips(form.expertise).length === 0) {
     errors.expertise = "Expertise is required";
+  }
+  if (form.oneLineDescription.length > ONE_LINE_DESCRIPTION_MAX) {
+    errors.oneLineDescription = `Description must be ${ONE_LINE_DESCRIPTION_MAX} characters or fewer`;
   }
 
   const password = form.password;
@@ -125,7 +135,9 @@ export function buildCreateExpertBody(
   const profilePicture = optionalProfileString(form.profilePicture);
   if (profilePicture) body.profilePicture = profilePicture;
 
-  const oneLineDescription = optionalProfileString(form.oneLineDescription);
+  const oneLineDescription = optionalProfileString(
+    clampOneLineDescription(form.oneLineDescription),
+  );
   if (oneLineDescription) body.oneLineDescription = oneLineDescription;
 
   return body;
@@ -149,7 +161,9 @@ export function buildUpdateExpertBody(
   const profilePicture = optionalProfileString(form.profilePicture);
   if (profilePicture) body.profilePicture = profilePicture;
 
-  const oneLineDescription = optionalProfileString(form.oneLineDescription);
+  const oneLineDescription = optionalProfileString(
+    clampOneLineDescription(form.oneLineDescription),
+  );
   if (oneLineDescription) body.oneLineDescription = oneLineDescription;
 
   return body;

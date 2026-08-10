@@ -3,6 +3,7 @@ import {
   buildCreateExpertBody,
   buildUpdateExpertBody,
   canSetExpertStatus,
+  clampOneLineDescription,
   normalizeYearsOfXp,
   optionalProfileString,
   parseExpertiseChips,
@@ -132,6 +133,17 @@ describe("expert-form", () => {
         { requirePassword: true },
       ).confirmPassword,
     ).toBe("Passwords do not match");
+  });
+
+  it("clamps one-line description to 200 characters", () => {
+    const long = "a".repeat(250);
+    expect(clampOneLineDescription(long)).toHaveLength(200);
+    expect(
+      buildCreateExpertBody({
+        ...baseForm,
+        oneLineDescription: long,
+      }).oneLineDescription,
+    ).toHaveLength(200);
   });
 
   it("blocks deactivation of internal experts", () => {

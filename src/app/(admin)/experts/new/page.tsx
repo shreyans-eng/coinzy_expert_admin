@@ -10,7 +10,9 @@ import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
 import { createExpert } from "@/lib/admin-api";
 import {
+  ONE_LINE_DESCRIPTION_MAX,
   buildCreateExpertBody,
+  clampOneLineDescription,
   validateExpertProfileForm,
   type ExpertProfileFormValues,
 } from "@/lib/expert-form";
@@ -79,6 +81,7 @@ export default function NewExpertPage() {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             error={errors.name}
+            placeholder="Jordan Lee"
             required
           />
           <Input
@@ -87,6 +90,7 @@ export default function NewExpertPage() {
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             error={errors.email}
+            placeholder="expert@example.com"
             required
           />
           <PasswordInput
@@ -95,6 +99,7 @@ export default function NewExpertPage() {
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             error={errors.password}
+            placeholder="Enter a secure password"
             required
           />
           <PasswordInput
@@ -105,6 +110,7 @@ export default function NewExpertPage() {
               setForm({ ...form, confirmPassword: e.target.value })
             }
             error={errors.confirmPassword}
+            placeholder="Re-enter password"
             required
           />
           <Input
@@ -130,7 +136,8 @@ export default function NewExpertPage() {
             value={form.expertise}
             onChange={(expertise) => setForm({ ...form, expertise })}
             error={errors.expertise}
-            hint='Add multiple chips. Saved as a comma-separated string, e.g. "shreyans is good, food is good".'
+            placeholder="Ancient coins"
+            hint='Add multiple chips. Saved as a comma-separated string, e.g. "Ancient coins, British India".'
             required
           />
           <Input
@@ -141,14 +148,21 @@ export default function NewExpertPage() {
               setForm({ ...form, profilePicture: e.target.value })
             }
             hint="Optional HTTPS URL"
-            placeholder="https://..."
+            placeholder="https://media.example.com/avatars/expert.jpg"
           />
           <Textarea
             label="One-line description"
             value={form.oneLineDescription}
             onChange={(e) =>
-              setForm({ ...form, oneLineDescription: e.target.value })
+              setForm({
+                ...form,
+                oneLineDescription: clampOneLineDescription(e.target.value),
+              })
             }
+            error={errors.oneLineDescription}
+            hint={`${form.oneLineDescription.length}/${ONE_LINE_DESCRIPTION_MAX} characters`}
+            placeholder="Ancient coin specialist with deep grading experience"
+            maxLength={ONE_LINE_DESCRIPTION_MAX}
             rows={2}
           />
 

@@ -21,8 +21,10 @@ import {
   updateExpertStatus,
 } from "@/lib/admin-api";
 import {
+  ONE_LINE_DESCRIPTION_MAX,
   buildUpdateExpertBody,
   canSetExpertStatus,
+  clampOneLineDescription,
   validateExpertProfileForm,
   yearsOfXpInputValue,
   type ExpertProfileFormValues,
@@ -49,7 +51,7 @@ function formFromExpert(data: Expert): ExpertProfileFormValues {
     confirmPassword: "",
     supportedCountries: data.supportedCountries.join(", "),
     profilePicture: data.profilePicture ?? "",
-    oneLineDescription: data.oneLineDescription ?? "",
+    oneLineDescription: clampOneLineDescription(data.oneLineDescription ?? ""),
     yearsOfXp: yearsOfXpInputValue(data.yearsOfXp),
     expertise: data.expertise ?? "",
   };
@@ -243,6 +245,7 @@ export default function ExpertDetailPage() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   error={errors.name}
+                  placeholder="Jordan Lee"
                   required
                 />
                 <Input
@@ -251,6 +254,7 @@ export default function ExpertDetailPage() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   error={errors.email}
+                  placeholder="expert@example.com"
                   required
                 />
                 <PasswordInput
@@ -262,6 +266,7 @@ export default function ExpertDetailPage() {
                   }
                   error={errors.password}
                   hint="Leave blank to keep current password"
+                  placeholder="Enter a new password"
                 />
                 <PasswordInput
                   label="Confirm new password"
@@ -271,6 +276,7 @@ export default function ExpertDetailPage() {
                     setForm({ ...form, confirmPassword: e.target.value })
                   }
                   error={errors.confirmPassword}
+                  placeholder="Re-enter new password"
                 />
                 <Input
                   label="Supported countries"
@@ -297,7 +303,8 @@ export default function ExpertDetailPage() {
                   value={form.expertise}
                   onChange={(expertise) => setForm({ ...form, expertise })}
                   error={errors.expertise}
-                  hint='Add multiple chips. Saved as a comma-separated string, e.g. "shreyans is good, food is good".'
+                  placeholder="Ancient coins"
+                  hint='Add multiple chips. Saved as a comma-separated string, e.g. "Ancient coins, British India".'
                   required
                 />
                 <Input
@@ -308,6 +315,7 @@ export default function ExpertDetailPage() {
                     setForm({ ...form, profilePicture: e.target.value })
                   }
                   hint="Optional HTTPS URL. Leave blank to keep the current value."
+                  placeholder="https://media.example.com/avatars/expert.jpg"
                 />
                 {form.profilePicture.trim() ? (
                   <div className="rounded-xl border border-border bg-input-bg p-3">
@@ -329,8 +337,17 @@ export default function ExpertDetailPage() {
                   label="One-line description"
                   value={form.oneLineDescription}
                   onChange={(e) =>
-                    setForm({ ...form, oneLineDescription: e.target.value })
+                    setForm({
+                      ...form,
+                      oneLineDescription: clampOneLineDescription(
+                        e.target.value,
+                      ),
+                    })
                   }
+                  error={errors.oneLineDescription}
+                  hint={`${form.oneLineDescription.length}/${ONE_LINE_DESCRIPTION_MAX} characters`}
+                  placeholder="Ancient coin specialist with deep grading experience"
+                  maxLength={ONE_LINE_DESCRIPTION_MAX}
                   rows={3}
                 />
                 <Button type="submit" loading={saving}>
