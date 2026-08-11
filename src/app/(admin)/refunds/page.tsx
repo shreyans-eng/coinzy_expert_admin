@@ -23,7 +23,11 @@ export default function RefundsPage() {
               <code className="rounded bg-input-bg px-1.5 py-0.5 font-mono text-xs">
                 GET /admin/requests?status=refund_pending
               </code>{" "}
-              and the approve/reject endpoints.
+              and the approve/reject endpoints. Those routes currently return{" "}
+              <code className="rounded bg-input-bg px-1.5 py-0.5 font-mono text-xs">
+                501
+              </code>
+              .
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Button disabled title="501 — not implemented">
@@ -43,6 +47,14 @@ export default function RefundsPage() {
             <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
               POST /admin/users/:userId/credits/adjust
             </code>
+            . Body is only{" "}
+            <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
+              amount
+            </code>{" "}
+            +{" "}
+            <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
+              reason
+            </code>
             .
           </p>
           <OfflineRefundForm />
@@ -51,9 +63,27 @@ export default function RefundsPage() {
 
       <Card title="Current limitations" className="mt-6">
         <ul className="space-y-2 text-sm text-text-muted">
-          <li>✅ Restores the user&apos;s credits</li>
-          <li>✅ Leaves an audit trail through the adjustment reason</li>
-          <li>❌ Does not create a <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">refund</code> ledger entry</li>
+          <li>✅ Restores the user&apos;s credits via credit adjust</li>
+          <li>
+            ✅ Leaves an audit trail through{" "}
+            <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
+              admin_adjustment
+            </code>{" "}
+            + reason (request id embedded in reason text only)
+          </li>
+          <li>
+            ❌ Does not create a{" "}
+            <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
+              refund
+            </code>{" "}
+            ledger entry
+          </li>
+          <li>
+            ❌ Does not set{" "}
+            <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
+              ledger.requestId
+            </code>
+          </li>
           <li>
             ❌ Does not automatically change request status to{" "}
             <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
@@ -62,8 +92,8 @@ export default function RefundsPage() {
           </li>
         </ul>
         <p className="mt-4 text-sm text-text-muted">
-          Those last two items require the backend refund APIs and the planned
-          Refund Queue / Approve / Reject flow.
+          Those last items require the backend refund APIs and the planned Refund
+          Queue / Approve / Reject flow.
         </p>
       </Card>
 
@@ -99,10 +129,15 @@ export default function RefundsPage() {
             manual — credit restore and store refund are separate steps.
           </p>
           <p>
-            Full spec:{" "}
+            Spec reference (until{" "}
             <code className="rounded bg-input-bg px-1.5 py-0.5 font-mono text-xs">
-              coinzy-experts-backend/public/admin/refunds.md
-            </code>
+              public/admin/refunds.md
+            </code>{" "}
+            exists):{" "}
+            <code className="rounded bg-input-bg px-1.5 py-0.5 font-mono text-xs">
+              coinzy-experts-backend/public/mobile-user/requests.md
+            </code>{" "}
+            → Refund Handling.
           </p>
         </div>
       </Card>

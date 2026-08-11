@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
-import { adjustUserCredits, getUser } from "@/lib/admin-api";
+import { adjustUserCredits } from "@/lib/admin-api";
 import { useApiHandler } from "@/lib/useApiHandler";
 import { useMemo, useState } from "react";
 
@@ -58,7 +58,8 @@ export function OfflineRefundForm() {
   const confirmRestore = async () => {
     setLoading(true);
     try {
-      await getUser(adminKey, userId.trim());
+      // Only call the working adjust API. Do not pre-check GET /admin/users/:id
+      // — that endpoint is not implemented on the backend today.
       const result = await adjustUserCredits(adminKey, userId.trim(), {
         amount: parsedAmount,
         reason,
@@ -80,14 +81,20 @@ export function OfflineRefundForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <ol className="list-decimal space-y-2 pl-5 text-sm text-text">
           <li>
-            Confirm MongoDB <code className="font-mono text-xs">_id</code> values
-            for the user and request (not display IDs).
+            Confirm MongoDB <code className="font-mono text-xs">_id</code> for the
+            user (Users list) and request (for the reason string only).
           </li>
           <li>
             Process the <strong>Apple / Google store refund</strong> outside this
             app (App Store Connect / Play Console).
           </li>
-          <li>Restore in-app credits with the form below.</li>
+          <li>
+            Restore in-app credits below via{" "}
+            <code className="font-mono text-xs">
+              POST /admin/users/:userId/credits/adjust
+            </code>
+            .
+          </li>
         </ol>
 
         <Input
@@ -95,7 +102,7 @@ export function OfflineRefundForm() {
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
           placeholder="64f1…"
-          hint="From Users → user detail"
+          hint="Copy from Users list → Mongo ID. Do not rely on user detail (GET /admin/users/:id is not available yet)."
           autoComplete="off"
         />
         <Input
@@ -103,7 +110,7 @@ export function OfflineRefundForm() {
           value={requestId}
           onChange={(e) => setRequestId(e.target.value)}
           placeholder="64f2…"
-          hint="Do not use the display / request number"
+          hint="For audit only — embedded in reason. Not sent as requestId and not stored on ledger.requestId. Do not use display ID (EV-…)."
           autoComplete="off"
         />
         <Input
@@ -113,12 +120,14 @@ export function OfflineRefundForm() {
           step={1}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          hint="Usually the credits that were charged for the request"
+          hint="Usually 1 credit per evaluation. Must be a positive integer."
           error={error}
         />
 
         <div className="rounded-xl border border-border bg-input-bg px-3 py-2">
-          <p className="text-xs font-medium text-text-muted">Reason (auto-filled)</p>
+          <p className="text-xs font-medium text-text-muted">
+            Reason sent to API (auto-filled)
+          </p>
           <p className="mt-1 break-all font-mono text-xs text-text">
             {reason || "offline_refund_approved_for_request_<requestId>"}
           </p>
@@ -139,8 +148,9 @@ export function OfflineRefundForm() {
           This writes ledger type{" "}
           <code className="rounded bg-input-bg px-1 py-0.5">admin_adjustment</code>
           , not{" "}
-          <code className="rounded bg-input-bg px-1 py-0.5">refund</code>. Request
-          status is not updated automatically.
+          <code className="rounded bg-input-bg px-1 py-0.5">refund</code>.{" "}
+          <code className="rounded bg-input-bg px-1 py-0.5">ledger.requestId</code>{" "}
+          stays null. Request status is not updated automatically.
         </p>
       </form>
 
