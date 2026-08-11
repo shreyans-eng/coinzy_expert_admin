@@ -7,6 +7,7 @@ import { ExpertAllocationLookup } from "@/components/experts/ExpertAllocationLoo
 import { ExpertPerformancePanel } from "@/components/experts/ExpertPerformancePanel";
 import { ExpertProfileHeader } from "@/components/experts/ExpertProfileHeader";
 import { ExpertiseChipsInput } from "@/components/experts/ExpertiseChipsInput";
+import { ProfileImageField } from "@/components/experts/ProfileImageField";
 import { Badge, statusBadgeVariant } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, LoadingState, PageHeader } from "@/components/ui/Card";
@@ -307,32 +308,13 @@ export default function ExpertDetailPage() {
                   hint='Add multiple chips. Saved as a comma-separated string, e.g. "Ancient coins, British India".'
                   required
                 />
-                <Input
-                  label="Profile picture URL"
-                  type="url"
+                <ProfileImageField
                   value={form.profilePicture}
-                  onChange={(e) =>
-                    setForm({ ...form, profilePicture: e.target.value })
+                  onChange={(profilePicture) =>
+                    setForm({ ...form, profilePicture })
                   }
-                  hint="Optional HTTPS URL. Leave blank to keep the current value."
-                  placeholder="https://media.example.com/avatars/expert.jpg"
+                  hint="Upload a new image or leave the current HTTPS URL unchanged."
                 />
-                {form.profilePicture.trim() ? (
-                  <div className="rounded-xl border border-border bg-input-bg p-3">
-                    <p className="mb-2 text-xs font-medium text-text-muted">
-                      Preview
-                    </p>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={form.profilePicture.trim()}
-                      alt="Profile preview"
-                      className="h-20 w-20 rounded-xl object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-                ) : null}
                 <Textarea
                   label="One-line description"
                   value={form.oneLineDescription}

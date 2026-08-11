@@ -2,6 +2,7 @@
 
 import { useAdminKey } from "@/components/layout/AdminAuthGuard";
 import { ExpertiseChipsInput } from "@/components/experts/ExpertiseChipsInput";
+import { ProfileImageField } from "@/components/experts/ProfileImageField";
 import { Button } from "@/components/ui/Button";
 import { Card, PageHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -140,15 +141,11 @@ export default function NewExpertPage() {
             hint='Add multiple chips. Saved as a comma-separated string, e.g. "Ancient coins, British India".'
             required
           />
-          <Input
-            label="Profile picture URL"
-            type="url"
+          <ProfileImageField
             value={form.profilePicture}
-            onChange={(e) =>
-              setForm({ ...form, profilePicture: e.target.value })
+            onChange={(profilePicture) =>
+              setForm({ ...form, profilePicture })
             }
-            hint="Optional HTTPS URL"
-            placeholder="https://media.example.com/avatars/expert.jpg"
           />
           <Textarea
             label="One-line description"
