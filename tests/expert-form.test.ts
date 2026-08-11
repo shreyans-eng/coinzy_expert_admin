@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCreateExpertBody,
+  buildPasswordChangeBody,
   buildUpdateExpertBody,
   canSetExpertStatus,
   clampOneLineDescription,
@@ -10,6 +11,7 @@ import {
   parseSupportedCountries,
   serializeExpertiseChips,
   validateExpertProfileForm,
+  validatePasswordChangeForm,
   yearsOfXpInputValue,
 } from "@/lib/expert-form";
 
@@ -76,13 +78,20 @@ describe("expert-form", () => {
     expect(body).not.toHaveProperty("oneLineDescription");
   });
 
-  it("builds update body and only includes password when set", () => {
+  it("builds profile update body without password (keeps existing)", () => {
     expect(
-      buildUpdateExpertBody({ ...baseForm, password: "", confirmPassword: "" }),
+      buildUpdateExpertBody({ ...baseForm, password: "new-secret" }),
     ).not.toHaveProperty("password");
+  });
+
+  it("builds password change body with new password only", () => {
     expect(
-      buildUpdateExpertBody({ ...baseForm, password: "new-secret" }).password,
-    ).toBe("new-secret");
+      buildPasswordChangeBody({
+        oldPassword: "old-secret",
+        password: "new-secret",
+        confirmPassword: "new-secret",
+      }),
+    ).toEqual({ password: "new-secret" });
   });
 
   it("always sends required years and expertise on update", () => {
@@ -133,6 +142,27 @@ describe("expert-form", () => {
         { requirePassword: true },
       ).confirmPassword,
     ).toBe("Passwords do not match");
+  });
+
+  it("validates password change requires current, new, and confirm", () => {
+    expect(
+      validatePasswordChangeForm({
+        oldPassword: "",
+        password: "",
+        confirmPassword: "",
+      }),
+    ).toEqual({
+      oldPassword: "Current password is required",
+      password: "New password is required",
+      confirmPassword: "Confirm password is required",
+    });
+    expect(
+      validatePasswordChangeForm({
+        oldPassword: "same",
+        password: "same",
+        confirmPassword: "same",
+      }).password,
+    ).toBe("New password must be different from current password");
   });
 
   it("clamps one-line description to 200 characters", () => {

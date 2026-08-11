@@ -23,12 +23,15 @@ import {
 } from "@/lib/admin-api";
 import {
   ONE_LINE_DESCRIPTION_MAX,
+  buildPasswordChangeBody,
   buildUpdateExpertBody,
   canSetExpertStatus,
   clampOneLineDescription,
   validateExpertProfileForm,
+  validatePasswordChangeForm,
   yearsOfXpInputValue,
   type ExpertProfileFormValues,
+  type PasswordChangeFormValues,
 } from "@/lib/expert-form";
 import { useApiHandler } from "@/lib/useApiHandler";
 import type { Expert, ExpertStatus } from "@/types/admin-api";
@@ -43,6 +46,12 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "edit", label: "Edit profile" },
   { id: "allocation", label: "Allocation" },
 ];
+
+const EMPTY_PASSWORD_FORM: PasswordChangeFormValues = {
+  oldPassword: "",
+  password: "",
+  confirmPassword: "",
+};
 
 function formFromExpert(data: Expert): ExpertProfileFormValues {
   return {
@@ -68,7 +77,11 @@ export default function ExpertDetailPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("overview");
   const [saving, setSaving] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>(
+    {},
+  );
   const [statusDialog, setStatusDialog] = useState<ExpertStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
   const [form, setForm] = useState<ExpertProfileFormValues>({
@@ -82,6 +95,8 @@ export default function ExpertDetailPage() {
     yearsOfXp: "",
     expertise: "",
   });
+  const [passwordForm, setPasswordForm] =
+    useState<PasswordChangeFormValues>(EMPTY_PASSWORD_FORM);
 
   const loadExpert = async () => {
     setLoading(true);
@@ -89,7 +104,9 @@ export default function ExpertDetailPage() {
       const data = await getExpert(adminKey, id);
       setExpert(data);
       setForm(formFromExpert(data));
+      setPasswordForm(EMPTY_PASSWORD_FORM);
       setErrors({});
+      setPasswordErrors({});
     } catch (err) {
       handleApiError(err, (msg) => showToast(msg, "error"));
     } finally {
@@ -124,6 +141,30 @@ export default function ExpertDetailPage() {
       handleApiError(err, (msg) => showToast(msg, "error"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const nextErrors = validatePasswordChangeForm(passwordForm);
+    setPasswordErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setPasswordSaving(true);
+    try {
+      const updated = await updateExpert(
+        adminKey,
+        id,
+        buildPasswordChangeBody(passwordForm),
+      );
+      setExpert(updated);
+      setPasswordForm(EMPTY_PASSWORD_FORM);
+      setPasswordErrors({});
+      showToast("Password updated", "success");
+    } catch (err) {
+      handleApiError(err, (msg) => showToast(msg, "error"));
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -238,7 +279,7 @@ export default function ExpertDetailPage() {
 
       {tab === "edit" ? (
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="space-y-6 lg:col-span-2">
             <Card title="Edit expert profile">
               <form onSubmit={handleSave} className="space-y-4">
                 <Input
@@ -257,27 +298,6 @@ export default function ExpertDetailPage() {
                   error={errors.email}
                   placeholder="expert@example.com"
                   required
-                />
-                <PasswordInput
-                  label="New password"
-                  autoComplete="new-password"
-                  value={form.password}
-                  onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
-                  }
-                  error={errors.password}
-                  hint="Leave blank to keep current password"
-                  placeholder="Enter a new password"
-                />
-                <PasswordInput
-                  label="Confirm new password"
-                  autoComplete="new-password"
-                  value={form.confirmPassword}
-                  onChange={(e) =>
-                    setForm({ ...form, confirmPassword: e.target.value })
-                  }
-                  error={errors.confirmPassword}
-                  placeholder="Re-enter new password"
                 />
                 <Input
                   label="Supported countries"
@@ -313,7 +333,7 @@ export default function ExpertDetailPage() {
                   onChange={(profilePicture) =>
                     setForm({ ...form, profilePicture })
                   }
-                  hint="Upload a new image or leave the current HTTPS URL unchanged."
+                  hint="Upload a new image or leave the current URL unchanged. URL is read-only."
                 />
                 <Textarea
                   label="One-line description"
@@ -333,7 +353,61 @@ export default function ExpertDetailPage() {
                   rows={3}
                 />
                 <Button type="submit" loading={saving}>
-                  Save changes
+                  Save profile
+                </Button>
+              </form>
+            </Card>
+
+            <Card title="Forgot / reset password">
+              <p className="mb-4 text-sm text-text-muted">
+                Separate from profile save. Enter the current password, then set
+                a new one. Saving profile keeps the existing password unchanged.
+              </p>
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <PasswordInput
+                  label="Current password"
+                  autoComplete="current-password"
+                  value={passwordForm.oldPassword}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      oldPassword: e.target.value,
+                    })
+                  }
+                  error={passwordErrors.oldPassword}
+                  placeholder="Enter current password"
+                  required
+                />
+                <PasswordInput
+                  label="New password"
+                  autoComplete="new-password"
+                  value={passwordForm.password}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      password: e.target.value,
+                    })
+                  }
+                  error={passwordErrors.password}
+                  placeholder="Enter a new password"
+                  required
+                />
+                <PasswordInput
+                  label="Confirm new password"
+                  autoComplete="new-password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                  error={passwordErrors.confirmPassword}
+                  placeholder="Re-enter new password"
+                  required
+                />
+                <Button type="submit" loading={passwordSaving}>
+                  Update password
                 </Button>
               </form>
             </Card>
@@ -364,11 +438,10 @@ export default function ExpertDetailPage() {
               </div>
             </dl>
             <p className="mt-4 text-xs text-text-muted">
-              Status changes use{" "}
+              Profile save does not change password. Use Forgot / reset password
+              to set a new one. Status uses{" "}
               <code className="font-mono">PATCH /admin/experts/:id/status</code>
-              . System-managed fields (workload, stats, timestamps) are
-              read-only. Empty optional profile fields are omitted on save so
-              existing values are kept.
+              .
             </p>
           </Card>
         </div>

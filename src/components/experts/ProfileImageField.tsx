@@ -131,18 +131,16 @@ export function ProfileImageField({
         label="Profile picture URL"
         type="url"
         value={value}
-        onChange={(e) => {
-          setUploadError(null);
-          onChange(e.target.value);
-        }}
+        readOnly
         error={displayError}
         hint={
           hint ??
           (firebaseReady
-            ? "Filled automatically after upload, or paste an HTTPS URL."
-            : "Firebase env vars missing — paste an HTTPS URL manually.")
+            ? "Filled automatically after upload. Not editable."
+            : "Firebase env vars missing — upload is unavailable until configured.")
         }
         placeholder="https://…firebasestorage.googleapis.com/…"
+        className="cursor-default text-text-muted"
       />
     </div>
   );

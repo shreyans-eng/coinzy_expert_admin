@@ -90,33 +90,59 @@ export function validateExpertProfileForm(
     errors.oneLineDescription = `Description must be ${ONE_LINE_DESCRIPTION_MAX} characters or fewer`;
   }
 
-  const password = form.password;
-  const confirmPassword = form.confirmPassword;
-  const passwordProvided = Boolean(password.trim());
-  const confirmProvided = Boolean(confirmPassword.trim());
-
   if (options.requirePassword) {
+    const password = form.password;
+    const confirmPassword = form.confirmPassword;
+    const passwordProvided = Boolean(password.trim());
+    const confirmProvided = Boolean(confirmPassword.trim());
+
     if (!passwordProvided) errors.password = "Password is required";
     if (!confirmProvided) {
       errors.confirmPassword = "Confirm password is required";
     }
-  } else if (passwordProvided || confirmProvided) {
-    if (!passwordProvided) errors.password = "Password is required";
-    if (!confirmProvided) {
-      errors.confirmPassword = "Confirm password is required";
+    if (
+      passwordProvided &&
+      confirmProvided &&
+      password !== confirmPassword
+    ) {
+      errors.confirmPassword = "Passwords do not match";
     }
   }
 
+  return errors;
+}
+
+export type PasswordChangeFormValues = {
+  oldPassword: string;
+  password: string;
+  confirmPassword: string;
+};
+
+export function validatePasswordChangeForm(
+  form: PasswordChangeFormValues,
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (!form.oldPassword.trim()) {
+    errors.oldPassword = "Current password is required";
+  }
+  if (!form.password.trim()) errors.password = "New password is required";
+  if (!form.confirmPassword.trim()) {
+    errors.confirmPassword = "Confirm password is required";
+  }
   if (
-    passwordProvided &&
-    confirmProvided &&
-    password !== confirmPassword &&
-    !errors.password &&
-    !errors.confirmPassword
+    form.password.trim() &&
+    form.confirmPassword.trim() &&
+    form.password !== form.confirmPassword
   ) {
     errors.confirmPassword = "Passwords do not match";
   }
-
+  if (
+    form.oldPassword.trim() &&
+    form.password.trim() &&
+    form.oldPassword === form.password
+  ) {
+    errors.password = "New password must be different from current password";
+  }
   return errors;
 }
 
@@ -143,6 +169,7 @@ export function buildCreateExpertBody(
   return body;
 }
 
+/** Profile update only — never changes password (keeps existing password). */
 export function buildUpdateExpertBody(
   form: ExpertProfileFormValues,
 ): UpdateExpertBody {
@@ -154,10 +181,6 @@ export function buildUpdateExpertBody(
     expertise: serializeExpertiseChips(parseExpertiseChips(form.expertise)),
   };
 
-  if (form.password.trim()) {
-    body.password = form.password;
-  }
-
   const profilePicture = optionalProfileString(form.profilePicture);
   if (profilePicture) body.profilePicture = profilePicture;
 
@@ -167,6 +190,13 @@ export function buildUpdateExpertBody(
   if (oneLineDescription) body.oneLineDescription = oneLineDescription;
 
   return body;
+}
+
+/** Admin password reset / change — backend accepts new password only. */
+export function buildPasswordChangeBody(
+  form: PasswordChangeFormValues,
+): Pick<UpdateExpertBody, "password"> {
+  return { password: form.password };
 }
 
 /** Internal experts cannot be suspended or blocked (backend returns 409). */
