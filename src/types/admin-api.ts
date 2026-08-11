@@ -36,6 +36,8 @@ export type UserRequestStats = {
   adminCreatedRequests: number;
   creditsSpentOnRequests: number;
   lastRequestAt: string | null;
+  withResult?: number;
+  withoutResult?: number;
 };
 
 export type User = {
@@ -48,6 +50,26 @@ export type User = {
   createdAt: string;
   updatedAt: string;
   stats?: UserRequestStats;
+};
+
+export type AdminUserRequest = {
+  _id: string;
+  displayId: string | null;
+  coinTitle: string | null;
+  userId: string | null;
+  country: string;
+  status: string;
+  assignedExpertId: string | null;
+  reportId: string | null;
+  isAdminCreated: boolean;
+  creditLedgerId: string | null;
+  hasResult: boolean;
+  deadlineAt: string | null;
+  acceptedAt: string | null;
+  submittedAt: string | null;
+  completedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
 export type CreditLedger = {

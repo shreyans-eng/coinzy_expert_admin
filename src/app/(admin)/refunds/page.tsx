@@ -1,7 +1,8 @@
 import { OfflineRefundForm } from "@/components/refunds/OfflineRefundForm";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card, PageHeader } from "@/components/ui/Card";
+import { Card, LoadingState, PageHeader } from "@/components/ui/Card";
+import { Suspense } from "react";
 
 export default function RefundsPage() {
   return (
@@ -55,9 +56,11 @@ export default function RefundsPage() {
             <code className="rounded bg-input-bg px-1 py-0.5 font-mono text-xs">
               reason
             </code>
-            .
+            . Prefill from Users → user detail → Use in refund.
           </p>
-          <OfflineRefundForm />
+          <Suspense fallback={<LoadingState label="Loading refund form…" />}>
+            <OfflineRefundForm />
+          </Suspense>
         </Card>
       </div>
 

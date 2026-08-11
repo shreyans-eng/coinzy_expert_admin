@@ -29,6 +29,8 @@ const EMPTY_STATS: UserRequestStats = {
   adminCreatedRequests: 0,
   creditsSpentOnRequests: 0,
   lastRequestAt: null,
+  withResult: 0,
+  withoutResult: 0,
 };
 
 export function userStats(user: User): UserRequestStats {

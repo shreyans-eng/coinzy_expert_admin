@@ -10,20 +10,26 @@ type Props = {
 
 export function UserStatsPanel({ stats, creditBalance }: Props) {
   const completionRate = completionRateForUser(stats);
+  const withResult = stats.withResult ?? stats.completedRequests;
+  const withoutResult =
+    stats.withoutResult ??
+    Math.max(0, stats.totalRequests - withResult);
 
   return (
-    <Card title="Request activity">
+    <Card title="Request analytics">
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile label="Total requests" value={stats.totalRequests} highlight />
+        <StatTile label="Got result" value={withResult} tone="success" />
+        <StatTile label="No result yet" value={withoutResult} tone="warning" />
         <StatTile label="Active now" value={stats.activeRequests} />
-        <StatTile label="Completed" value={stats.completedRequests} />
-        <StatTile label="Credits spent" value={stats.creditsSpentOnRequests} />
       </div>
 
       <dl className="grid gap-4 sm:grid-cols-2">
+        <StatRow label="Completed" value={stats.completedRequests} />
         <StatRow label="Deadline missed" value={stats.deadlineMissedRequests} />
         <StatRow label="Refund-related" value={stats.refundedRequests} />
         <StatRow label="Admin-created" value={stats.adminCreatedRequests} />
+        <StatRow label="Credits spent" value={stats.creditsSpentOnRequests} />
         <StatRow label="Current credits" value={creditBalance} />
         <StatRow
           label="Success rate"
@@ -50,19 +56,27 @@ function StatTile({
   label,
   value,
   highlight,
+  tone,
 }: {
   label: string;
   value: number;
   highlight?: boolean;
+  tone?: "success" | "warning";
 }) {
+  const valueClass = highlight
+    ? "text-primary"
+    : tone === "success"
+      ? "text-success-text"
+      : tone === "warning"
+        ? "text-warning-text"
+        : "text-text";
+
   return (
     <div className="rounded-xl border border-border bg-input-bg/40 p-3">
       <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
         {label}
       </p>
-      <p
-        className={`mt-1 text-xl font-bold tabular-nums ${highlight ? "text-primary" : "text-text"}`}
-      >
+      <p className={`mt-1 text-xl font-bold tabular-nums ${valueClass}`}>
         {value}
       </p>
     </div>

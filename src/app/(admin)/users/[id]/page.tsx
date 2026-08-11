@@ -4,10 +4,11 @@ import { useAdminKey } from "@/components/layout/AdminAuthGuard";
 import { UserStatsPanel } from "@/components/users/UserStatsPanel";
 import { CreditAdjustModal } from "@/components/users/CreditAdjustModal";
 import { CreateRequestModal } from "@/components/users/CreateRequestModal";
-import { Badge } from "@/components/ui/Badge";
+import { Badge, statusBadgeVariant } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
+  EmptyState,
   LoadingState,
   PageHeader,
 } from "@/components/ui/Card";
@@ -16,10 +17,35 @@ import { useToast } from "@/components/ui/Toast";
 import { getUser } from "@/lib/admin-api";
 import { displayUserLabel, formatLastLogin, userStats } from "@/lib/user-metrics";
 import { useApiHandler } from "@/lib/useApiHandler";
-import type { User, UserRequestStats } from "@/types/admin-api";
+import type {
+  AdminUserRequest,
+  User,
+  UserRequestStats,
+} from "@/types/admin-api";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+function requestStatusVariant(status: string) {
+  switch (status) {
+    case "completed":
+      return "success" as const;
+    case "deadline_missed":
+    case "expired":
+    case "cancelled":
+      return "danger" as const;
+    case "refund_pending":
+    case "refund_processing":
+    case "refunded":
+      return "warning" as const;
+    case "accepted":
+    case "report_submitted":
+    case "offered":
+      return "info" as const;
+    default:
+      return statusBadgeVariant(status);
+  }
+}
 
 export default function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +55,7 @@ export default function UserDetailPage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<UserRequestStats | null>(null);
+  const [requests, setRequests] = useState<AdminUserRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
@@ -39,8 +66,12 @@ export default function UserDetailPage() {
       const data = await getUser(adminKey, id);
       setUser(data.user);
       setStats(data.stats);
+      setRequests(data.requests);
     } catch (err) {
       handleApiError(err, (msg) => showToast(msg, "error"));
+      setUser(null);
+      setStats(null);
+      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -50,6 +81,16 @@ export default function UserDetailPage() {
     void loadUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminKey, id]);
+
+  const sortedRequests = useMemo(
+    () =>
+      [...requests].sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bTime - aTime;
+      }),
+    [requests],
+  );
 
   if (loading) return <LoadingState label="Loading user…" />;
   if (!user || !stats) {
@@ -74,7 +115,7 @@ export default function UserDetailPage() {
         }
       />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card className="!p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
             Total requests
@@ -85,9 +126,23 @@ export default function UserDetailPage() {
         </Card>
         <Card className="!p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Active requests
+            Got result
           </p>
-          <p className="mt-1 text-3xl font-bold">{activity.activeRequests}</p>
+          <p className="mt-1 text-3xl font-bold text-success-text">
+            {stats.withResult ?? stats.completedRequests}
+          </p>
+        </Card>
+        <Card className="!p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            No result
+          </p>
+          <p className="mt-1 text-3xl font-bold text-warning-text">
+            {stats.withoutResult ??
+              Math.max(
+                0,
+                stats.totalRequests - (stats.withResult ?? stats.completedRequests),
+              )}
+          </p>
         </Card>
         <Card className="!p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
@@ -124,7 +179,7 @@ export default function UserDetailPage() {
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-text-muted">Email</dt>
-              <dd className="text-text-muted">{user.email}</dd>
+              <dd className="text-text-muted">{user.email ?? "—"}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-text-muted">Credits</dt>
@@ -156,9 +211,102 @@ export default function UserDetailPage() {
             >
               Create request
             </Button>
+            <Link href={`/refunds?userId=${encodeURIComponent(user._id)}`}>
+              <Button variant="secondary" className="w-full sm:w-auto">
+                Offline refund
+              </Button>
+            </Link>
           </div>
         </Card>
       </div>
+
+      <Card title="Requests" className="mt-6">
+        <p className="mb-4 text-sm text-text-muted">
+          Copy the Request Mongo ID into Refunds → Restore credits. Display IDs
+          (EV-…) are for humans only.
+        </p>
+        {sortedRequests.length === 0 ? (
+          <EmptyState
+            title="No requests yet"
+            description="This user has no evaluation requests."
+          />
+        ) : (
+          <div className="-mx-4 overflow-x-auto sm:-mx-6">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-muted">
+                  <th className="px-4 py-3 font-semibold sm:px-6">
+                    Request Mongo ID
+                  </th>
+                  <th className="px-4 py-3 font-semibold sm:px-6">Display ID</th>
+                  <th className="px-4 py-3 font-semibold sm:px-6">Status</th>
+                  <th className="hidden px-4 py-3 font-semibold md:table-cell sm:px-6">
+                    Result
+                  </th>
+                  <th className="hidden px-4 py-3 font-semibold lg:table-cell sm:px-6">
+                    Country
+                  </th>
+                  <th className="hidden px-4 py-3 font-semibold xl:table-cell sm:px-6">
+                    Created
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold sm:px-6">
+                    Refund
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {sortedRequests.map((request) => (
+                  <tr key={request._id} className="hover:bg-input-bg/50">
+                    <td className="px-4 py-3 sm:px-6">
+                      <CopyId
+                        value={request._id}
+                        label="Request Mongo ID"
+                      />
+                    </td>
+                    <td className="px-4 py-3 font-medium sm:px-6">
+                      {request.displayId ?? "—"}
+                      {request.isAdminCreated ? (
+                        <Badge variant="info" className="ml-2">
+                          Admin
+                        </Badge>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      <Badge variant={requestStatusVariant(request.status)}>
+                        {request.status}
+                      </Badge>
+                    </td>
+                    <td className="hidden px-4 py-3 md:table-cell sm:px-6">
+                      {request.hasResult ? (
+                        <Badge variant="success">Got result</Badge>
+                      ) : (
+                        <Badge variant="muted">No result</Badge>
+                      )}
+                    </td>
+                    <td className="hidden px-4 py-3 text-text-muted lg:table-cell sm:px-6">
+                      {request.country}
+                    </td>
+                    <td className="hidden px-4 py-3 text-text-muted xl:table-cell sm:px-6">
+                      {request.createdAt
+                        ? new Date(request.createdAt).toLocaleString()
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right sm:px-6">
+                      <Link
+                        href={`/refunds?userId=${encodeURIComponent(user._id)}&requestId=${encodeURIComponent(request._id)}`}
+                      >
+                        <Button variant="ghost" size="sm">
+                          Use in refund
+                        </Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
       <CreditAdjustModal
         open={creditModalOpen}

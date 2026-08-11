@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { adjustUserCredits } from "@/lib/admin-api";
 import { useApiHandler } from "@/lib/useApiHandler";
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 function offlineRefundReason(requestId: string) {
   return `offline_refund_approved_for_request_${requestId.trim()}`;
@@ -17,6 +18,7 @@ export function OfflineRefundForm() {
   const adminKey = useAdminKey();
   const handleApiError = useApiHandler();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
 
   const [userId, setUserId] = useState("");
   const [requestId, setRequestId] = useState("");
@@ -25,6 +27,13 @@ export function OfflineRefundForm() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastBalance, setLastBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    const nextUserId = searchParams.get("userId")?.trim();
+    const nextRequestId = searchParams.get("requestId")?.trim();
+    if (nextUserId) setUserId(nextUserId);
+    if (nextRequestId) setRequestId(nextRequestId);
+  }, [searchParams]);
 
   const parsedAmount = Number.parseInt(amount, 10);
   const reason = useMemo(
@@ -102,7 +111,7 @@ export function OfflineRefundForm() {
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
           placeholder="64f1…"
-          hint="Copy from Users list → Mongo ID. Do not rely on user detail (GET /admin/users/:id is not available yet)."
+          hint="Copy from Users list or user detail. Prefills from ?userId= when opened via Use in refund."
           autoComplete="off"
         />
         <Input
@@ -110,7 +119,7 @@ export function OfflineRefundForm() {
           value={requestId}
           onChange={(e) => setRequestId(e.target.value)}
           placeholder="64f2…"
-          hint="For audit only — embedded in reason. Not sent as requestId and not stored on ledger.requestId. Do not use display ID (EV-…)."
+          hint="For audit only — embedded in reason. Prefills from user detail → Use in refund. Do not use display ID (EV-…)."
           autoComplete="off"
         />
         <Input

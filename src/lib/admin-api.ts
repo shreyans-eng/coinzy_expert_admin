@@ -12,6 +12,7 @@ import type {
   UpdateExpertBody,
   User,
   UserRequestStats,
+  AdminUserRequest,
 } from "@/types/admin-api";
 
 function withKey(adminKey: string) {
@@ -88,11 +89,16 @@ export async function listUsers(adminKey: string, email?: string) {
 }
 
 export async function getUser(adminKey: string, userId: string) {
-  const res = await adminFetch<{ user: User; stats: UserRequestStats }>(
-    `/admin/users/${userId}`,
-    { method: "GET", ...withKey(adminKey) },
-  );
-  return res.data;
+  const res = await adminFetch<{
+    user: User;
+    stats: UserRequestStats;
+    requests?: AdminUserRequest[];
+  }>(`/admin/users/${userId}`, { method: "GET", ...withKey(adminKey) });
+  return {
+    user: res.data.user,
+    stats: res.data.stats,
+    requests: res.data.requests ?? [],
+  };
 }
 
 export async function adjustUserCredits(
